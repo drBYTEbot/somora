@@ -56,8 +56,8 @@ const STORAGE_KEY = "somora-progress-v2";
 const LEGACY_KEY = "somora-progress-v1";
 const TODAY = new Date().toISOString().slice(0, 10);
 
-function getInitialState(): StoreState {
-  const defaultState: StoreState = {
+function getDefaultState(): StoreState {
+  return {
     user: { name: "Explorer", avatar: "star" },
     xp: 0,
     coins: 100,
@@ -74,30 +74,26 @@ function getInitialState(): StoreState {
     chatHistory: [],
     lessonNotes: {},
   };
+}
 
-  if (typeof window === "undefined") return defaultState;
-
+function loadFromStorage(): StoreState | null {
+  if (typeof window === "undefined") return null;
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      // One-time migration from v1: keep progress, drop chat history.
       raw = localStorage.getItem(LEGACY_KEY);
       if (raw) {
-        try {
-          localStorage.removeItem(LEGACY_KEY);
-        } catch {
-          // ignore
-        }
+        try { localStorage.removeItem(LEGACY_KEY); } catch { /* ignore */ }
       }
     }
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...defaultState, ...parsed, chatHistory: [] };
+      return { ...getDefaultState(), ...parsed, chatHistory: [] };
     }
   } catch {
-    // ignore parse errors
+    // ignore
   }
-  return defaultState;
+  return null;
 }
 
 const XP_PER_LEVEL = 500;
@@ -140,8 +136,14 @@ interface StoreContextValue {
 const StoreContext = createContext<StoreContextValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<StoreState>(getInitialState);
+  const [state, setState] = useState<StoreState>(getDefaultState);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load from localStorage on mount (avoids hydration mismatch)
+  useEffect(() => {
+    const stored = loadFromStorage();
+    if (stored) setState(stored);
+  }, []);
 
   // Update streak on mount
   useEffect(() => {
@@ -358,7 +360,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const resetProgress = useCallback(() => {
-    const fresh = getInitialState();
+    const fresh = getDefaultState();
     fresh.streak = 1;
     fresh.lastActiveDate = TODAY;
     setState(fresh);

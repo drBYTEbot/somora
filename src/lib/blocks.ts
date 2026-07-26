@@ -339,7 +339,7 @@ export function makeBlock(type: string, params?: Record<string, string | number>
     defaultParams[p.name] = p.default;
   });
   return {
-    id: `block-${++blockIdCounter}-${Date.now()}`,
+    id: `block-${++blockIdCounter}`,
     type,
     params: { ...defaultParams, ...params },
     children: def?.shape === "c-block" || def?.shape === "hat" ? [] : undefined,

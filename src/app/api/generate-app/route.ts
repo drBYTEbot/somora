@@ -30,10 +30,11 @@ export async function POST(req: NextRequest) {
           { role: "system", content: STUDIO_PROMPT },
           { role: "user", content: `Build: ${idea}` },
         ],
-        max_tokens: 2500,
+        max_tokens: 2000,
         temperature: 0.7,
+        stream: false,
       }),
-      signal: AbortSignal.timeout(55000),
+      signal: AbortSignal.timeout(25000),
     });
 
     if (!res.ok) {
