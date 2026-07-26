@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/icons/icon";
-import { aiChat, isAIReady } from "@/lib/ai";
+import { aiChat, isAIReady, loadPuter } from "@/lib/ai";
 
 interface ChatMsg {
   id: string;
@@ -25,13 +25,16 @@ export function FloatingChat() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const check = setInterval(() => {
-      if (isAIReady()) {
-        setAiReady(true);
-        clearInterval(check);
-      }
-    }, 1000);
-    return () => clearInterval(check);
+    loadPuter().then(() => {
+      const check = setInterval(() => {
+        if (isAIReady()) {
+          setAiReady(true);
+          clearInterval(check);
+        }
+      }, 500);
+      setTimeout(() => clearInterval(check), 15000);
+      return () => clearInterval(check);
+    });
   }, []);
 
   useEffect(() => {

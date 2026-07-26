@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { site } from "@/config/site";
 import { StoreProvider } from "@/lib/store";
@@ -68,10 +67,6 @@ export default function RootLayout({
           {children}
           <AuthBanner />
         </StoreProvider>
-        <Script
-          src="https://js.puter.com/v2/"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );

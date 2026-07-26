@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
-import { aiChat, generateImage, isAIReady } from "@/lib/ai";
+import { aiChat, generateImage, isAIReady, loadPuter } from "@/lib/ai";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
 
 const ideaButtons = [
@@ -42,14 +42,17 @@ export default function CreatorPage() {
   const [imgReady, setImgReady] = useState(false);
 
   useEffect(() => {
-    const check = setInterval(() => {
-      if (isAIReady()) {
-        setReady(true);
-        setImgReady(true);
-        clearInterval(check);
-      }
-    }, 1000);
-    return () => clearInterval(check);
+    loadPuter().then(() => {
+      const check = setInterval(() => {
+        if (isAIReady()) {
+          setReady(true);
+          setImgReady(true);
+          clearInterval(check);
+        }
+      }, 500);
+      setTimeout(() => clearInterval(check), 15000);
+      return () => clearInterval(check);
+    });
   }, []);
 
   async function run() {

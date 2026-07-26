@@ -23,6 +23,33 @@ declare global {
   }
 }
 
+let puterLoadPromise: Promise<void> | null = null;
+
+export function loadPuter(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.puter?.ai?.chat) return Promise.resolve();
+  if (puterLoadPromise) return puterLoadPromise;
+
+  puterLoadPromise = new Promise<void>((resolve) => {
+    const existing = document.querySelector('script[src="https://js.puter.com/v2/"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      if (window.puter?.ai?.chat) resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://js.puter.com/v2/";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      puterLoadPromise = null;
+      resolve();
+    };
+    document.head.appendChild(script);
+  });
+  return puterLoadPromise;
+}
+
 const SYSTEM_PROMPT = `You are Somora, a friendly AI buddy for kids around 5th grade (10-11 years old). You talk like a cool older sibling or a fun teacher, not like a robot or a textbook.
 
 HOW YOU TALK:

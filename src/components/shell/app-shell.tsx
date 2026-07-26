@@ -3,13 +3,22 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
-import { Icon } from "@/components/icons/icon";
+import { Icon, type IconName } from "@/components/icons/icon";
 import { Logo } from "@/components/brand/logo";
 import { FloatingChat } from "@/components/ui/floating-chat";
+import { cn } from "@/lib/utils";
+
+const QUICK_LINKS: { href: string; icon: IconName; label: string }[] = [
+  { href: "/studio", icon: "studio", label: "Studio" },
+  { href: "/labs", icon: "labs", label: "Labs" },
+  { href: "/arcade", icon: "arcade", label: "Arcade" },
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen">
@@ -64,13 +73,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Icon name="menu" />
           </button>
-          <div className="flex-1" />
+
+          {/* Quick links */}
+          <div className="flex items-center gap-1">
+            {QUICK_LINKS.map((link) => {
+              const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-all",
+                    active
+                      ? "bg-white/10 text-cloud ring-1 ring-white/10"
+                      : "text-cloud-muted hover:bg-white/5 hover:text-cloud",
+                  )}
+                >
+                  <Icon name={link.icon} className="h-4 w-4" />
+                  <span className="hidden sm:inline">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
           <Link
             href="/profile"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud active:scale-95"
+            className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-aurora-teal to-aurora-violet ring-2 ring-white/10 transition-all hover:ring-white/30 active:scale-95"
             aria-label="Profile"
           >
-            <Icon name="profile" className="h-4.5 w-4.5" />
+            <Logo className="h-6 w-6" />
           </Link>
         </header>
         <main>{children}</main>

@@ -11,31 +11,18 @@ export function AuthBanner() {
 
   useEffect(() => {
     if (dismissed) return;
-    // Check if Puter.js is loaded but AI isn't ready after 3 seconds
-    // This likely means the auth popup appeared
-    const timer = setTimeout(() => {
+    const check = setInterval(() => {
       if (typeof window !== "undefined" && window.puter && !isAIReady()) {
         setShow(true);
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [dismissed]);
-
-  // Also check if puter exists but auth is needed
-  useEffect(() => {
-    if (dismissed) return;
-    const interval = setInterval(() => {
-      if (typeof window !== "undefined" && window.puter && !isAIReady() && !show) {
-        setShow(true);
-        clearInterval(interval);
+        clearInterval(check);
       }
     }, 2000);
-    const timeout = setTimeout(() => clearInterval(interval), 15000);
+    const timeout = setTimeout(() => clearInterval(check), 20000);
     return () => {
-      clearInterval(interval);
+      clearInterval(check);
       clearTimeout(timeout);
     };
-  }, [dismissed, show]);
+  }, [dismissed]);
 
   return (
     <AnimatePresence>
@@ -48,7 +35,7 @@ export function AuthBanner() {
         >
           <div className="rounded-3xl glass-strong p-5 shadow-glow-lg shadow-aurora-violet/30">
             <div className="flex items-start gap-3">
-              <div className="text-2xl">{"\u{1F916}"}</div>
+              <Icon name="chat" className="mt-0.5 h-6 w-6 shrink-0 text-cyan-400" />
               <div className="flex-1">
                 <p className="font-display text-sm font-bold text-cloud">
                   About the AI popup

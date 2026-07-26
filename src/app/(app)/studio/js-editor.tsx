@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-import { aiChat, isAIReady } from "@/lib/ai";
+import { aiChat, isAIReady, loadPuter } from "@/lib/ai";
 
 const STARTER_CODE = `// Write code here! Have fun!
 
@@ -53,10 +53,13 @@ export function JSEditor() {
   const [aiReady, setAiReady] = useState(false);
 
   useEffect(() => {
-    const check = setInterval(() => {
-      if (isAIReady()) { setAiReady(true); clearInterval(check); }
-    }, 1000);
-    return () => clearInterval(check);
+    loadPuter().then(() => {
+      const check = setInterval(() => {
+        if (isAIReady()) { setAiReady(true); clearInterval(check); }
+      }, 500);
+      setTimeout(() => clearInterval(check), 15000);
+      return () => clearInterval(check);
+    });
   }, []);
 
   const run = useCallback(() => {

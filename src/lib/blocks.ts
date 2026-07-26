@@ -260,7 +260,9 @@ function genBlocks(blocks: PlacedBlock[], indent: number): string {
   let code = "";
   for (const block of blocks) {
     code += genBlock(block, indent) + "\n";
-    if (block.type === "onClick") {
+    if (block.type === "onStart") {
+      code += genBlocks(block.children ?? [], indent);
+    } else if (block.type === "onClick") {
       code += genBlocks(block.children ?? [], indent + 1);
       code += "  ".repeat(indent) + "});\n";
     } else if (block.type === "repeat" || block.type === "if") {
@@ -292,7 +294,10 @@ export function generateCode(blocks: PlacedBlock[]): string {
   }
 ${body}
 }
-try { run(); } catch(e) { addToLog('\u274C ' + e.message); console.error(e); }`;
+run().catch(e => {
+  console.error(e);
+  parent.postMessage({ type: 'somora-log', msg: '\u274C ' + (e?.message || String(e)) }, '*');
+});`;
 }
 
 export function generateHTML(blocks: PlacedBlock[]): string {
