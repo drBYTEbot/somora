@@ -48,17 +48,15 @@ export async function aiChat(
   userMessage: string,
   history?: Array<{ role: "user" | "ai"; content: string }>,
 ): Promise<string> {
-  const conversation = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...(history ?? []).map((m) => ({
-      role: m.role === "ai" ? "assistant" : "user",
-      content: m.content,
-    })),
-    { role: "user", content: userMessage },
-  ];
+  let prompt = userMessage;
+  if (history && history.length > 0) {
+    const convo = history
+      .map((m) => `${m.role === "user" ? "Kid" : "Somora"}: ${m.content}`)
+      .join("\n");
+    prompt = `Previous conversation:\n${convo}\n\nKid: ${userMessage}`;
+  }
 
-  const prompt = JSON.stringify(conversation);
-  const url = `${TEXT_API}/${encodeURIComponent(prompt)}?model=openai&seed=${Math.floor(Math.random() * 1000000)}`;
+  const url = `${TEXT_API}/${encodeURIComponent(prompt)}?model=openai&system=${encodeURIComponent(SYSTEM_PROMPT)}&seed=${Math.floor(Math.random() * 1000000)}`;
 
   try {
     const res = await fetch(url);
@@ -125,11 +123,8 @@ export interface StudioResult {
 }
 
 export async function generateApp(userIdea: string): Promise<StudioResult> {
-  const prompt = JSON.stringify([
-    { role: "system", content: STUDIO_SYSTEM_PROMPT },
-    { role: "user", content: `Build this app idea: "${userIdea}"` },
-  ]);
-  const url = `${TEXT_API}/${encodeURIComponent(prompt)}?model=openai&seed=${Math.floor(Math.random() * 1000000)}`;
+  const userPrompt = `Build this app idea: "${userIdea}". Respond with ONLY valid JSON, no markdown fences.`;
+  const url = `${TEXT_API}/${encodeURIComponent(userPrompt)}?model=openai&system=${encodeURIComponent(STUDIO_SYSTEM_PROMPT)}&json=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
   try {
     const res = await fetch(url);
