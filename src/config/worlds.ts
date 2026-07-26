@@ -1,7 +1,7 @@
 export interface SomoraWorld {
   id: string;
   name: string;
-  emoji: string;
+  iconName: string;
   blurb: string;
   topic: string;
   gradient: string;
@@ -17,7 +17,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "curious-grove",
     name: "Curious Grove",
-    emoji: "\u{1F333}",
+    iconName: "star",
     blurb: "Where every question sprouts a new idea.",
     topic: "Foundations of AI",
     gradient: "from-emerald-400 to-teal-500",
@@ -31,7 +31,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "robot-valley",
     name: "Robot Valley",
-    emoji: "\u{1F916}",
+    iconName: "star",
     blurb: "Meet machines that sense, think, and move.",
     topic: "Robotics & Agents",
     gradient: "from-slate-300 to-slate-500",
@@ -45,7 +45,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "data-forest",
     name: "Data Forest",
-    emoji: "\u{1F4CA}",
+    iconName: "star",
     blurb: "Grow datasets and watch patterns bloom.",
     topic: "Data & Datasets",
     gradient: "from-teal-400 to-emerald-600",
@@ -59,7 +59,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "neural-peaks",
     name: "Neural Peaks",
-    emoji: "\u{1F9E0}",
+    iconName: "star",
     blurb: "Climb the mountains of learning itself.",
     topic: "Neural Networks",
     gradient: "from-violet-400 to-indigo-600",
@@ -73,7 +73,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "vision-volcano",
     name: "Vision Volcano",
-    emoji: "\u{1F30B}",
+    iconName: "star",
     blurb: "Teach AI to see the world around it.",
     topic: "Computer Vision",
     gradient: "from-orange-400 to-red-600",
@@ -87,7 +87,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "language-lagoon",
     name: "Language Lagoon",
-    emoji: "\u{1F4AC}",
+    iconName: "star",
     blurb: "Dive into how machines understand words.",
     topic: "Natural Language",
     gradient: "from-sky-400 to-cyan-600",
@@ -101,7 +101,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "prompt-planet",
     name: "Prompt Planet",
-    emoji: "\u{1FA90}",
+    iconName: "star",
     blurb: "Orbit the art of talking to AI.",
     topic: "Prompt Engineering",
     gradient: "from-fuchsia-400 to-purple-600",
@@ -115,7 +115,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "robotics-harbor",
     name: "Robotics Harbor",
-    emoji: "\u2699\u{FE0F}",
+    iconName: "star",
     blurb: "Dock, build, and ship real creations.",
     topic: "Building & Deployment",
     gradient: "from-amber-400 to-yellow-600",
@@ -129,7 +129,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "innovation-city",
     name: "Innovation City",
-    emoji: "\u{1F3D9}\u{FE0F}",
+    iconName: "star",
     blurb: "Where young builders become inventors.",
     topic: "AI Entrepreneurship",
     gradient: "from-indigo-400 to-blue-600",
@@ -143,7 +143,7 @@ export const worlds: SomoraWorld[] = [
   {
     id: "space-observatory",
     name: "Space Observatory",
-    emoji: "\u{1F52D}",
+    iconName: "star",
     blurb: "Look outward. Build for tomorrow.",
     topic: "Frontier AI",
     gradient: "from-indigo-300 to-violet-700",

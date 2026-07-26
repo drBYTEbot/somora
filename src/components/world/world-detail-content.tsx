@@ -49,8 +49,8 @@ export function WorldDetailContent({
     return (
       <div className="container-page py-16">
         <div className="mx-auto max-w-lg rounded-5xl glass-strong p-10 text-center">
-          <div className={cn("mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br text-4xl opacity-50 grayscale shadow-glow-lg", world.gradient, world.glow)}>
-            <span aria-hidden="true">{world.emoji}</span>
+          <div className={cn("mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br opacity-50 grayscale shadow-glow-lg", world.gradient, world.glow)}>
+            <Icon name={world.iconName as any} className="h-8 w-8 text-white" />
           </div>
           <h1 className="font-display text-3xl font-bold text-cloud">{world.name}</h1>
           <p className="mt-2 text-cloud-muted">{world.blurb}</p>
@@ -73,8 +73,8 @@ export function WorldDetailContent({
       <div className="relative overflow-hidden rounded-5xl glass-strong p-8 lg:p-12">
         <div className={cn("absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gradient-to-br opacity-25 blur-3xl", world.gradient)} />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-          <div className={cn("flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br text-5xl shadow-glow-lg", world.gradient, world.glow)}>
-            <span aria-hidden="true">{world.emoji}</span>
+          <div className={cn("flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br shadow-glow-lg", world.gradient, world.glow)}>
+            <Icon name={world.iconName as any} className="h-8 w-8 text-white" />
           </div>
           <div>
             <p className={cn("text-sm font-semibold uppercase tracking-wider", world.text)}>{world.topic}</p>

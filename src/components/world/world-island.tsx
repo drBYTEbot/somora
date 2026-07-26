@@ -30,7 +30,7 @@ export function WorldIsland({
         )}
         style={{ animationDelay: `${index * 0.4}s` }}
       >
-        <span aria-hidden="true">{world.emoji}</span>
+        <Icon name={world.iconName as any} className="h-6 w-6 text-white sm:h-7 sm:w-7" />
         {locked ? (
           <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-night-900 text-cloud-muted ring-2 ring-night-950">
             <Icon name="lock" className="h-3 w-3" />

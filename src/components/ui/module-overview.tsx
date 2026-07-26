@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { SomoraModule } from "@/config/modules";
 import { StatusBadge } from "./status-badge";
 import { Button } from "./button";
+import { Icon } from "@/components/icons/icon";
 
 export function ModuleOverview({ module }: { module: SomoraModule }) {
   return (
@@ -27,12 +28,12 @@ export function ModuleOverview({ module }: { module: SomoraModule }) {
             <div className="mb-5 flex items-center gap-4">
               <div
                 className={cn(
-                  "flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br text-4xl shadow-glow-lg",
+                  "flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br shadow-glow-lg",
                   module.gradient,
                   module.glow,
                 )}
               >
-                <span aria-hidden="true">{module.emoji}</span>
+                <Icon name={module.icon as any} className="h-7 w-7 text-white" />
               </div>
               <StatusBadge status={module.status} />
             </div>

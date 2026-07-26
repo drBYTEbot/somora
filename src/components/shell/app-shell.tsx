@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { Sidebar } from "./sidebar";
 import { Icon } from "@/components/icons/icon";
-import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
+import { FloatingChat } from "@/components/ui/floating-chat";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -63,19 +64,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Icon name="menu" />
           </button>
-          <p className="hidden font-display text-sm text-cloud-dim lg:block">
-            Where curiosity creates intelligence
-          </p>
-          <Button
-            href="/universe"
-            variant="outline"
-            className="px-4 py-2 text-sm"
+          <div className="flex-1" />
+          <Link
+            href="/profile"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud active:scale-95"
+            aria-label="Profile"
           >
-            World Map
-          </Button>
+            <Icon name="profile" className="h-4.5 w-4.5" />
+          </Link>
         </header>
         <main>{children}</main>
       </div>
+
+      <FloatingChat />
     </div>
   );
 }

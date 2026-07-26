@@ -58,7 +58,7 @@ const TODAY = new Date().toISOString().slice(0, 10);
 
 function getInitialState(): StoreState {
   const defaultState: StoreState = {
-    user: { name: "Explorer", avatar: "\u{1F9E0}" },
+    user: { name: "Explorer", avatar: "star" },
     xp: 0,
     coins: 100,
     gems: 0,

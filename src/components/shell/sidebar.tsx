@@ -6,6 +6,7 @@ import { modules } from "@/config/modules";
 import { site } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/logo";
+import { Icon, type IconName } from "@/components/icons/icon";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -23,10 +24,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </span>
       </Link>
 
-      <div className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-cloud-dim">
-        Explore
-      </div>
-
       {modules.map((m) => {
         const active =
           pathname === m.href || pathname.startsWith(`${m.href}/`);
@@ -36,7 +33,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             href={m.href}
             onClick={onNavigate}
             className={cn(
-              "group flex items-center gap-3 rounded-2xl px-2.5 py-2 text-sm font-medium transition-all duration-200",
+              "group flex items-center gap-3 rounded-2xl px-2.5 py-2.5 text-sm font-medium transition-all duration-200",
               active
                 ? "bg-white/10 text-cloud ring-1 ring-white/10"
                 : "text-cloud-muted hover:bg-white/5 hover:text-cloud",
@@ -44,13 +41,13 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           >
             <span
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-lg shadow-glow",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-glow",
                 m.gradient,
                 m.glow,
                 !active && "opacity-80",
               )}
             >
-              <span aria-hidden="true">{m.emoji}</span>
+              <Icon name={m.icon as IconName} className="h-4.5 w-4.5 text-white" />
             </span>
             <span className="flex-1 truncate">{m.short}</span>
             {active && (

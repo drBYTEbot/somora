@@ -4,6 +4,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Starfield } from "@/components/visual/starfield";
 import { Logo } from "@/components/brand/logo";
+import { Icon, type IconName } from "@/components/icons/icon";
+
+const FLOATING_ICONS: IconName[] = ["universe", "arcade", "labs", "studio", "creator", "academy"];
 
 export default function LandingPage() {
   return (
@@ -32,9 +35,9 @@ export default function LandingPage() {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-7xl sm:text-8xl"
+          className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-aurora-teal to-aurora-violet shadow-glow"
         >
-          {"\u{1F680}"}
+          <Icon name="sparkles" className="h-8 w-8 text-white" />
         </motion.div>
 
         <motion.h1
@@ -73,17 +76,16 @@ export default function LandingPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-4 text-4xl"
+          className="mt-16 flex flex-wrap items-center justify-center gap-6 text-cloud-dim"
         >
-          {["\u{1F30C}", "\u{1F916}", "\u{1F9E0}", "\u{1F3AE}", "\u{1F3A8}", "\u{1F40D}"].map((emoji, i) => (
-            <motion.span
+          {FLOATING_ICONS.map((iconName, i) => (
+            <motion.div
               key={i}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
-              aria-hidden="true"
             >
-              {emoji}
-            </motion.span>
+              <Icon name={iconName} className="h-7 w-7" />
+            </motion.div>
           ))}
         </motion.div>
       </main>
