@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
-import { aiChat, generateImage, isAIReady, isImageReady, isSignedIn } from "@/lib/ai";
+import { aiChat, generateImage, isAIReady } from "@/lib/ai";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
 
 const ideaButtons = [
@@ -40,15 +40,13 @@ export default function CreatorPage() {
   const [artImage, setArtImage] = useState<string | null>(null);
   const [artError, setArtError] = useState<string | null>(null);
   const [imgReady, setImgReady] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const check = setInterval(() => {
       if (isAIReady()) {
         setReady(true);
-        setImgReady(isImageReady());
-        setSignedIn(isSignedIn());
-        if (isImageReady()) clearInterval(check);
+        setImgReady(true);
+        clearInterval(check);
       }
     }, 1000);
     return () => clearInterval(check);
@@ -81,10 +79,10 @@ export default function CreatorPage() {
         setArtImage(url);
         addXP(20);
       } else {
-        setArtError("AI couldn't make that image. Try a different prompt!");
+        setArtError("Couldn't generate that image. Try again!");
       }
-    } catch (err) {
-      setArtError(err instanceof Error ? err.message : "Something went wrong. Try again!");
+    } catch {
+      setArtError("Something went wrong. Try again!");
     } finally {
       setArtLoading(false);
     }
@@ -179,7 +177,7 @@ export default function CreatorPage() {
           />
           <button
             onClick={generateArt}
-            disabled={!artPrompt.trim() || artLoading || !imgReady}
+            disabled={!artPrompt.trim() || artLoading}
             className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 px-5 py-3 font-display font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-rose-500/40 disabled:opacity-50 active:scale-95"
           >
             {artLoading ? "Painting..." : "Create!"}
@@ -208,13 +206,8 @@ export default function CreatorPage() {
             <p className="text-sm text-aurora-rose">{artError}</p>
           ) : (
             <div className="text-center">
-              <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>
+              <Icon name="sparkles" className="mx-auto h-10 w-10 text-white/20" />
               <p className="mt-2 text-sm text-cloud-dim">Describe something and press Create!</p>
-              {imgReady && !signedIn && (
-                <p className="mt-2 text-xs text-aurora-amber">
-                  {"\u26A0\u{FE0F}"} Image generation needs a free Puter sign-in. A popup will appear when you click Create!
-                </p>
-              )}
             </div>
           )}
         </div>

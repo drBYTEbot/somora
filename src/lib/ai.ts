@@ -195,49 +195,60 @@ export async function generateApp(userIdea: string): Promise<StudioResult> {
 }
 
 export async function generateImage(prompt: string): Promise<string | null> {
-  if (!isImageReady()) {
-    throw new Error("AI is still loading. Wait a moment and try again.");
-  }
-
-  const signedIn = await ensureSignedIn();
-  if (!signedIn) {
-    throw new Error("You need to sign in to Puter to generate images. A popup should appear — sign in with Google or GitHub. It's free!");
-  }
-
+  // Primary: Pollinations.ai — free, no auth, no API key, open-source
+  // Just returns an image URL directly
   try {
-    const result = await window.puter!.ai!.txt2img(prompt);
+    const encoded = encodeURIComponent(prompt);
+    const seed = Math.floor(Math.random() * 1000000);
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&seed=${seed}`;
 
-    if (result instanceof HTMLImageElement) {
-      if (result.src) return result.src;
-      await new Promise<void>((resolve, reject) => {
-        result.addEventListener("load", () => resolve());
-        result.addEventListener("error", () => reject(new Error("Image failed to load")));
-        setTimeout(() => resolve(), 10000);
-      });
-      if (result.src) return result.src;
+    const res = await fetch(url, { method: "GET" });
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 1000) {
+        return URL.createObjectURL(blob);
+      }
     }
-
-    if (typeof result === "string") return result;
-
-    if (result && typeof result === "object") {
-      const r = result as { src?: string; url?: string; image_url?: string; toString?: () => string };
-      if (r.src) return r.src;
-      if (r.url) return r.url;
-      if (r.image_url) return r.image_url;
-      if (r.toString) return r.toString();
-    }
-
-    console.error("Unexpected txt2img response type:", typeof result, result);
-    return null;
-  } catch (err) {
-    console.error("txt2img error:", err);
-    const msg = err instanceof Error
-      ? err.message
-      : typeof err === "object" && err !== null
-        ? JSON.stringify(err)
-        : String(err);
-    throw new Error(msg || "Image generation failed. Try a different prompt.");
+    // If fetch fails or blob too small, fall through to Puter
+  } catch {
+    // Network error, fall through to Puter
   }
+
+  // Fallback: Puter.js txt2img (requires auth)
+  if (isImageReady()) {
+    try {
+      const signedIn = await ensureSignedIn();
+      if (!signedIn) {
+        throw new Error("Image generation is having trouble. Please try again in a moment.");
+      }
+
+      const result = await window.puter!.ai!.txt2img(prompt);
+
+      if (result instanceof HTMLImageElement) {
+        if (result.src) return result.src;
+        await new Promise<void>((resolve, reject) => {
+          result.addEventListener("load", () => resolve());
+          result.addEventListener("error", () => reject(new Error("Image failed to load")));
+          setTimeout(() => resolve(), 10000);
+        });
+        if (result.src) return result.src;
+      }
+
+      if (typeof result === "string") return result;
+
+      if (result && typeof result === "object") {
+        const r = result as { src?: string; url?: string; image_url?: string; toString?: () => string };
+        if (r.src) return r.src;
+        if (r.url) return r.url;
+        if (r.image_url) return r.image_url;
+        if (r.toString) return r.toString();
+      }
+    } catch (err) {
+      console.error("txt2img fallback error:", err);
+    }
+  }
+
+  return null;
 }
 
 /** Encode HTML into a shareable URL hash */

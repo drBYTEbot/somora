@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import { generateImage, isImageReady, isSignedIn } from "@/lib/ai";
+import { generateImage } from "@/lib/ai";
+import { Icon } from "@/components/icons/icon";
 
 const prompts = [
   "A cute robot painting a sunset",
@@ -20,19 +20,6 @@ export function AIArtist() {
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    const check = setInterval(() => {
-      if (isImageReady()) {
-        setReady(true);
-        setSignedIn(isSignedIn());
-        clearInterval(check);
-      }
-    }, 1000);
-    return () => clearInterval(check);
-  }, []);
 
   async function generate() {
     if (!prompt.trim() || loading) return;
@@ -46,11 +33,10 @@ export function AIArtist() {
         recordGamePlay("ai-artist", 1);
         addXP(30);
       } else {
-        setError("AI couldn't make that image. Try again or use a different prompt!");
+        setError("Couldn't generate that image. Try again!");
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong. Try again!";
-      setError(msg);
+    } catch {
+      setError("Something went wrong. Try again!");
     } finally {
       setLoading(false);
     }
@@ -59,7 +45,7 @@ export function AIArtist() {
   return (
     <div className="rounded-4xl glass-strong p-6 lg:p-8">
       <h3 className="font-display text-xl font-bold text-cloud">AI Artist</h3>
-      <p className="mt-1 text-sm text-cloud-muted">Describe any picture and watch real AI paint it!</p>
+      <p className="mt-1 text-sm text-cloud-muted">Describe any picture and watch AI paint it!</p>
 
       <div className="mt-4 flex gap-2">
         <input
@@ -71,7 +57,7 @@ export function AIArtist() {
         />
         <button
           onClick={generate}
-          disabled={!prompt.trim() || loading || !ready}
+          disabled={!prompt.trim() || loading}
           className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 px-5 py-3 font-display font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-rose-500/40 disabled:opacity-50 active:scale-95"
         >
           {loading ? "Painting..." : "Create!"}
@@ -107,13 +93,8 @@ export function AIArtist() {
           </div>
         ) : (
           <div className="text-center">
-            <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>
+            <Icon name="sparkles" className="mx-auto h-10 w-10 text-white/20" />
             <p className="mt-2 text-sm text-cloud-dim">Describe something and press Create!</p>
-            {ready && !signedIn && (
-              <p className="mt-2 text-xs text-aurora-amber">
-                {"\u26A0\u{FE0F}"} Image generation needs a free Puter sign-in. A popup will appear when you click Create!
-              </p>
-            )}
           </div>
         )}
       </div>

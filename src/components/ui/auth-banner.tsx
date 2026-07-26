@@ -54,10 +54,10 @@ export function AuthBanner() {
                   About the AI popup
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-cloud-muted">
-                  Somora uses a free AI service called Puter. Chat works without
-                  signing in, but making images needs a free Puter account. When
-                  you click Create, a popup will let you sign in with Google or
-                  GitHub. It&apos;s safe and free!
+                  Somora uses a free AI service called Puter for chat.
+                  Sometimes it shows a popup so you can use the AI for free.
+                  It&apos;s safe! You can sign in with Google or GitHub, or just
+                  close it and try again. You don&apos;t need to pay anything.
                 </p>
                 <button
                   onClick={() => setDismissed(true)}
