@@ -10,68 +10,94 @@ JSON format:
 
 Rules: Full HTML doc. Inline CSS+JS only. No external resources. Must actually work. Keep HTML under 3000 characters.`;
 
+async function callHF(idea: string, maxTokens: number): Promise<string> {
+  const res = await fetch(HF_ROUTER, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${HF_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "meta-llama/Llama-3.1-8B-Instruct",
+      messages: [
+        { role: "system", content: STUDIO_PROMPT },
+        { role: "user", content: `Build: ${idea}` },
+      ],
+      max_tokens: maxTokens,
+      temperature: 0.7,
+      stream: false,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "unknown");
+    throw new Error(`HF ${res.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content ?? "";
+  if (!text || text.trim().length === 0) {
+    throw new Error("Empty response");
+  }
+  return text;
+}
+
 export async function POST(req: NextRequest) {
   if (!HF_API_KEY) {
-    return NextResponse.json({ error: "AI is not configured." }, { status: 500 });
+    return NextResponse.json({ error: "AI is not configured. Check HUGGINGFACE_API_KEY env var." }, { status: 500 });
   }
 
   try {
     const { idea } = await req.json();
 
-    const res = await fetch(HF_ROUTER, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${HF_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "meta-llama/Llama-3.1-8B-Instruct",
-        messages: [
-          { role: "system", content: STUDIO_PROMPT },
-          { role: "user", content: `Build: ${idea}` },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-        stream: false,
-      }),
-      signal: AbortSignal.timeout(25000),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "unknown");
-      console.error("HF generate-app error:", res.status, errText);
-      return NextResponse.json(
-        { error: `AI generation failed (${res.status}).` },
-        { status: 500 },
-      );
+    let text: string;
+    try {
+      // First try with 2000 tokens
+      text = await callHF(idea, 2000);
+    } catch {
+      // Retry with fewer tokens (faster)
+      try {
+        text = await callHF(idea, 1500);
+      } catch (err2) {
+        console.error("generate-app retry failed:", err2);
+        return NextResponse.json(
+          { error: "AI is busy right now. Try again in a moment!" },
+          { status: 500 },
+        );
+      }
     }
 
-    const data = await res.json();
-    let text = data?.choices?.[0]?.message?.content ?? "";
-
-    if (!text || text.trim().length === 0) {
-      return NextResponse.json({ error: "AI returned empty response." }, { status: 500 });
-    }
-
+    // Remove markdown fences
     text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "");
 
+    // Extract JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return NextResponse.json({ error: "Could not parse AI response." }, { status: 500 });
+      console.error("No JSON found in response:", text.slice(0, 300));
+      return NextResponse.json({ error: "AI response was not valid JSON. Try again!" }, { status: 500 });
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      // Try to fix common JSON issues (trailing commas, unescaped quotes)
+      const cleaned = jsonMatch[0]
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]");
+      parsed = JSON.parse(cleaned);
+    }
 
     if (!parsed.html || !parsed.html.trim()) {
-      return NextResponse.json({ error: "AI did not generate app code." }, { status: 500 });
+      return NextResponse.json({ error: "AI did not generate app code. Try again!" }, { status: 500 });
     }
 
     return NextResponse.json({ result: parsed });
   } catch (err) {
-    if (err instanceof SyntaxError) {
-      return NextResponse.json({ error: "AI returned invalid JSON. Try again." }, { status: 500 });
-    }
     console.error("generate-app error:", err);
-    return NextResponse.json({ error: "Generation took too long. Try a simpler idea." }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Generation failed." },
+      { status: 500 },
+    );
   }
 }
