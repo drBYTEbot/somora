@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/profile"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-cloud-muted transition-all hover:bg-white/5 hover:text-cloud active:scale-95"
+            className="flex items-center justify-center p-2 text-cloud-muted transition-all hover:text-cloud active:scale-95"
             aria-label="Profile"
           >
             <Icon name="profile" className="h-5 w-5" />
