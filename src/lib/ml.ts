@@ -57,15 +57,16 @@ export function generateDataset(
   numSamples: number,
   noise: number,
   bias: number,
+  separation: number = 2,
 ): { xs: tf.Tensor2D; ys: tf.Tensor2D } {
   const half = Math.floor(numSamples / 2);
   const points: number[][] = [];
   const labels: number[][] = [];
 
-  // Class 0 cluster center
-  const c0 = [2 + bias * 0.1, 2 + bias * 0.1];
-  // Class 1 cluster center
-  const c1 = [-2 - bias * 0.1, -2 - bias * 0.1];
+  // Class 0 cluster center (shifted by separation and bias)
+  const c0 = [separation + bias * 0.1, separation + bias * 0.1];
+  // Class 1 cluster center (shifted opposite)
+  const c1 = [-separation - bias * 0.1, -separation - bias * 0.1];
 
   for (let i = 0; i < half; i++) {
     points.push([
@@ -117,6 +118,28 @@ export async function trainModel(
       },
     },
   });
+}
+
+/** Train a single epoch and return metrics. Allows step-by-step training with delays. */
+export async function trainOneEpoch(
+  model: tf.Sequential,
+  xs: tf.Tensor2D,
+  ys: tf.Tensor2D,
+): Promise<TrainingMetrics> {
+  const history = await model.fit(xs, ys, {
+    epochs: 1,
+    batchSize: 16,
+    shuffle: true,
+  });
+  const epoch = (history.epoch?.[0] ?? 0) + 1;
+  const logs = history.history;
+  const lossVal = Array.isArray(logs?.loss) ? logs.loss[0] : (logs?.loss as number) ?? 0;
+  const accVal = Array.isArray(logs?.acc) ? logs.acc[0] : Array.isArray(logs?.accuracy) ? logs.accuracy[0] : (logs?.acc as number) ?? 0;
+  return {
+    epoch,
+    loss: typeof lossVal === "number" ? lossVal : 0,
+    accuracy: typeof accVal === "number" ? accVal : 0,
+  };
 }
 
 /** Get predictions on a grid of points for visualization. */
