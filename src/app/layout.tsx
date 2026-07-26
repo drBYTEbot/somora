@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { site } from "@/config/site";
 import { StoreProvider } from "@/lib/store";
+import { AuthBanner } from "@/components/ui/auth-banner";
 
 const display = Fredoka({
   subsets: ["latin"],
@@ -63,7 +64,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
       <body className="font-sans">
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          {children}
+          <AuthBanner />
+        </StoreProvider>
         <Script
           src="https://js.puter.com/v2/"
           strategy="lazyOnload"

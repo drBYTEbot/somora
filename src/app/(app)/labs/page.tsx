@@ -6,37 +6,18 @@ import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import {
-  buildModel,
-  generateDataset,
-  trainModel,
-  predictGrid,
-  type TrainingMetrics,
-} from "@/lib/ml";
-
-const experiments = [
-  { id: "image-classifier", name: "Image Classification", emoji: "\u{1F4F7}", desc: "Label images and watch the model improve in real time.", gradient: "from-emerald-500 to-teal-600", tags: ["Vision", "Training"] },
-  { id: "text-classifier", name: "Text Classification", emoji: "\u{1F4DD}", desc: "Train an AI to recognize spam, sentiment, and intent.", gradient: "from-sky-500 to-blue-600", tags: ["NLP", "Text"] },
-  { id: "object-detection", name: "Object Detection", emoji: "\u{1F50E}", desc: "Draw bounding boxes and teach AI to find multiple objects.", gradient: "from-orange-500 to-red-600", tags: ["Vision", "Boxes"] },
-  { id: "voice-recognition", name: "Voice Recognition", emoji: "\u{1F3A4}", desc: "Record commands and train AI to recognize your voice.", gradient: "from-violet-500 to-indigo-600", tags: ["Audio", "On-device"] },
-  { id: "gesture-recognition", name: "Gesture Recognition", emoji: "\u{1F91A}", desc: "Use your webcam to train AI on hand gestures, privately.", gradient: "from-fuchsia-500 to-purple-600", tags: ["Vision", "Privacy"] },
-  { id: "recommendation", name: "Recommendation Engine", emoji: "\u{1F3AF}", desc: "Teach AI your taste and watch it recommend the perfect thing.", gradient: "from-cyan-500 to-teal-600", tags: ["Ranking", "Similarity"] },
-];
+import { buildModel, generateDataset, trainModel, predictGrid, type TrainingMetrics } from "@/lib/ml";
 
 export default function LabsPage() {
   const { addXP, unlockAchievement } = useStore();
-  const [datasetSize, setDatasetSize] = useState(50);
-  const [epochs, setEpochs] = useState(15);
-  const [noise, setNoise] = useState(3);
-  const [bias, setBias] = useState(0);
-  const [learningRate, setLearningRate] = useState(3);
+  const [step, setStep] = useState(0);
   const [training, setTraining] = useState(false);
   const [metrics, setMetrics] = useState<TrainingMetrics[]>([]);
-  const [currentEpoch, setCurrentEpoch] = useState(0);
-  const [grid, setGrid] = useState<{ x: number; y: number; pred: number }[]>([]);
-  const [finalAccuracy, setFinalAccuracy] = useState(0);
-
+  const [accuracy, setAccuracy] = useState(0);
+  const [grid, setGrid] = useState<{ pred: number }[]>([]);
   const modelRef = useRef<{ dispose: () => void } | null>(null);
+
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
 
   const cleanUp = useCallback(() => {
     if (modelRef.current) {
@@ -47,246 +28,197 @@ export default function LabsPage() {
 
   useEffect(() => () => cleanUp(), [cleanUp]);
 
+  const configs = {
+    easy: { samples: 80, epochs: 20, noise: 2, bias: 0, label: "Easy", emoji: "\u{1F525}", desc: "Clear patterns, lots of data" },
+    medium: { samples: 50, epochs: 15, noise: 6, bias: 2, label: "Medium", emoji: "\u{1F4A7}", desc: "Some messy data" },
+    hard: { samples: 30, epochs: 10, noise: 12, bias: 5, label: "Hard", emoji: "\u{1F525}\u{1F525}", desc: "Tricky, messy data" },
+  };
+
   async function train() {
     setTraining(true);
     setMetrics([]);
-    setCurrentEpoch(0);
+    setAccuracy(0);
     setGrid([]);
     cleanUp();
 
     try {
-      // Build model with configurable architecture
-      const model = buildModel({
-        layers: [8, 6, 4],
-        learningRate: learningRate / 100,
-      });
+      const cfg = configs[difficulty];
+      const model = buildModel({ layers: [6, 4], learningRate: 0.03 });
       modelRef.current = model;
+      const { xs, ys } = generateDataset(cfg.samples, cfg.noise, cfg.bias);
 
-      // Generate dataset
-      const { xs, ys } = generateDataset(datasetSize, noise, bias);
-
-      // Train
-      await trainModel(model, xs, ys, epochs, (m) => {
+      await trainModel(model, xs, ys, cfg.epochs, (m) => {
         setMetrics((prev) => [...prev, m]);
-        setCurrentEpoch(m.epoch);
+        setAccuracy(m.accuracy);
       });
 
-      // Get predictions for visualization
-      const gridPreds = predictGrid(model, 20);
-      setGrid(gridPreds);
-
-      const lastMetric = metrics.length > 0 ? metrics[metrics.length - 1] : null;
-      // Use the actual final metric from the training callback
-      setMetrics((prev) => {
-        if (prev.length > 0) {
-          setFinalAccuracy(prev[prev.length - 1].accuracy);
-        }
-        return prev;
-      });
-
-      // Award XP for training a model
+      const preds = predictGrid(model, 12);
+      setGrid(preds);
       addXP(40);
       unlockAchievement("data-wizard");
-
-      // Cleanup tensors
       xs.dispose();
       ys.dispose();
-    } catch (err) {
-      console.error("Training failed:", err);
+    } catch {
+      // ignore
     } finally {
       setTraining(false);
+      setStep(2);
     }
   }
 
-  const acc = finalAccuracy * 100;
-  const loss = metrics.length > 0 ? metrics[metrics.length - 1].loss : 0;
+  const acc = Math.round(accuracy * 100);
+  const lastLoss = metrics.length > 0 ? metrics[metrics.length - 1].loss : 0;
 
   return (
     <div className="container-page py-10 lg:py-14">
       <SectionHeader
         eyebrow="Somora Labs"
-        title="Real ML playground"
-        description="This is a real neural network powered by TensorFlow.js. Adjust the parameters and train it live in your browser. Every metric is real."
+        title="Teach a computer to think!"
+        description="Train a real AI brain! Pick a difficulty, press the button, and watch the AI learn. It's like feeding a pet brain!"
         center
       />
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        {/* Controls */}
-        <div className="rounded-4xl glass-strong p-6 lg:p-8">
-          <h2 className="font-display text-xl font-bold text-cloud">Configuration</h2>
-          <p className="mt-1 text-sm text-cloud-muted">Tune the hyperparameters and watch how they affect learning.</p>
+      <div className="mx-auto mt-10 max-w-2xl">
+        {/* Step 0: Pick difficulty */}
+        {step === 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <h2 className="text-center font-display text-xl font-bold text-cloud">Pick your challenge!</h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {(["easy", "medium", "hard"] as const).map((key) => {
+                const cfg = configs[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setDifficulty(key)}
+                    className={cn(
+                      "rounded-4xl p-6 text-center transition-all active:scale-95",
+                      difficulty === key ? "glass-strong ring-2 ring-aurora-violet/50" : "glass hover:bg-white/[0.06]",
+                    )}
+                  >
+                    <div className="text-4xl">{cfg.emoji}</div>
+                    <p className="mt-2 font-display text-lg font-bold text-cloud">{cfg.label}</p>
+                    <p className="mt-1 text-xs text-cloud-muted">{cfg.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <Button onClick={() => setStep(1)} className="w-full">
+              Let&apos;s train! {"\u{1F9E0}"}
+            </Button>
+          </motion.div>
+        )}
 
-          <div className="mt-6 space-y-5">
-            <Slider label="Dataset size" value={datasetSize} min={20} max={200} suffix=" samples" onChange={setDatasetSize} />
-            <Slider label="Training epochs" value={epochs} min={5} max={50} suffix="x" onChange={setEpochs} />
-            <Slider label="Data noise" value={noise} min={0} max={15} suffix="" onChange={setNoise} />
-            <Slider label="Data bias" value={bias} min={-10} max={10} suffix="" onChange={setBias} />
-            <Slider label="Learning rate" value={learningRate} min={1} max={20} suffix="" display={(v) => `${(v / 100).toFixed(3)}`} onChange={setLearningRate} />
-          </div>
-
-          <button
-            onClick={train}
-            disabled={training}
-            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-aurora-teal via-aurora-violet to-aurora-violet px-6 py-3 font-display font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-aurora-violet/40 disabled:opacity-50 active:scale-95"
-          >
-            {training ? `Training epoch ${currentEpoch}/${epochs}...` : "Train model"}
-          </button>
-
-          {training && (
-            <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+        {/* Step 1: Training */}
+        {step === 1 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            {/* The AI Brain */}
+            <div className="rounded-4xl glass-strong p-8 text-center">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-aurora-teal to-aurora-violet"
-                animate={{ width: `${(currentEpoch / epochs) * 100}%` }}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Results */}
-        <div className="rounded-4xl glass p-6 lg:p-8">
-          <h2 className="font-display text-xl font-bold text-cloud">Live training results</h2>
-          <p className="mt-1 text-sm text-cloud-muted">Real metrics from TensorFlow.js. No simulations.</p>
-
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl bg-night-950/40 p-4 text-center">
-              <p className="text-xs text-cloud-dim">Accuracy</p>
-              <p className={cn("font-display text-2xl font-bold", acc >= 80 ? "text-aurora-teal" : acc >= 50 ? "text-aurora-amber" : metrics.length > 0 ? "text-aurora-rose" : "text-cloud-dim")}>
-                {metrics.length > 0 ? `${Math.round(acc)}%` : "\u2014"}
+                animate={training ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                transition={training ? { duration: 1, repeat: Infinity } : {}}
+                className="text-7xl"
+              >
+                {"\u{1F9E0}"}
+              </motion.div>
+              <p className="mt-3 font-display text-lg font-bold text-cloud">
+                {training ? "The brain is learning!" : "Ready to learn!"}
+              </p>
+              <p className="text-sm text-cloud-muted">
+                {training ? `Thinking... ${metrics.length}/${configs[difficulty].epochs} lessons done` : `Difficulty: ${configs[difficulty].label}`}
               </p>
             </div>
-            <div className="rounded-2xl bg-night-950/40 p-4 text-center">
-              <p className="text-xs text-cloud-dim">Loss</p>
-              <p className="font-display text-2xl font-bold text-cloud">
-                {metrics.length > 0 ? loss.toFixed(3) : "\u2014"}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-night-950/40 p-4 text-center">
-              <p className="text-xs text-cloud-dim">Epoch</p>
-              <p className="font-display text-2xl font-bold text-cloud">
-                {currentEpoch}/{epochs}
-              </p>
-            </div>
-          </div>
 
-          {/* Loss/Accuracy chart */}
-          {metrics.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-cloud-dim">Training progress</p>
-              <div className="flex items-end justify-between gap-1" style={{ height: 100 }}>
-                {metrics.map((m, i) => (
-                  <div key={i} className="flex flex-1 flex-col items-center justify-end gap-1">
-                    <div
-                      className="w-full rounded-t bg-gradient-to-t from-aurora-teal/40 to-aurora-teal/80"
-                      style={{ height: `${Math.max(2, m.accuracy * 80)}px` }}
-                      title={`Epoch ${m.epoch}: ${(m.accuracy * 100).toFixed(1)}% acc, ${m.loss.toFixed(3)} loss`}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-1 flex justify-between text-[10px] text-cloud-dim">
-                <span>Epoch 1</span>
-                <span>Epoch {epochs}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Decision boundary visualization */}
-          {grid.length > 0 && (
-            <div className="mt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-cloud-dim">Decision boundary (what the AI learned)</p>
-              <div className="grid grid-cols-20 gap-px rounded-2xl overflow-hidden" style={{ gridTemplateColumns: "repeat(20, 1fr)" }}>
-                {grid.map((cell, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square"
-                    style={{
-                      backgroundColor: `rgba(${cell.pred > 0.5 ? "45, 212, 191" : "167, 139, 250"}, ${cell.pred > 0.5 ? cell.pred : 1 - cell.pred})`,
-                    }}
+            {/* Accuracy as a progress bar */}
+            {(training || metrics.length > 0) && (
+              <div className="rounded-3xl glass p-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-cloud">How smart is it?</span>
+                  <span className={cn("font-display text-2xl font-bold", acc >= 80 ? "text-aurora-teal" : acc >= 50 ? "text-aurora-amber" : "text-aurora-rose")}>
+                    {acc}%
+                  </span>
+                </div>
+                <div className="h-4 w-full overflow-hidden rounded-full bg-white/5">
+                  <motion.div
+                    className={cn("h-full rounded-full", acc >= 80 ? "bg-gradient-to-r from-aurora-teal to-aurora-leaf" : acc >= 50 ? "bg-gradient-to-r from-aurora-amber to-aurora-rose" : "bg-aurora-rose/60")}
+                    animate={{ width: `${acc}%` }}
                   />
-                ))}
+                </div>
+                <p className="mt-2 text-center text-xs text-cloud-dim">
+                  {acc >= 80 ? "Amazing! The brain learned really well!" : acc >= 50 ? "Not bad! Feed it more data to improve." : "The brain is confused. Try easier data!"}
+                </p>
               </div>
-              <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-cloud-dim">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-aurora-violet" /> Class A</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-aurora-teal" /> Class B</span>
+            )}
+
+            {/* What the brain sees */}
+            {grid.length > 0 && (
+              <div className="rounded-3xl glass p-6">
+                <p className="mb-3 text-sm font-semibold text-cloud">What the brain learned to see:</p>
+                <div className="grid gap-px overflow-hidden rounded-2xl" style={{ gridTemplateColumns: "repeat(12, 1fr)" }}>
+                  {grid.map((cell, i) => (
+                    <div key={i} className="aspect-square" style={{ backgroundColor: `rgba(${cell.pred > 0.5 ? "45, 212, 191" : "167, 139, 250"}, ${cell.pred > 0.5 ? cell.pred : 1 - cell.pred})` }} />
+                  ))}
+                </div>
+                <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-cloud-dim">
+                  <span>{"\u{1F7E3}"} Purple = one thing</span>
+                  <span>{"\u{1F7E2}"} Green = another thing</span>
+                </div>
+              </div>
+            )}
+
+            {!training && metrics.length === 0 && (
+              <Button onClick={train} className="w-full">
+                Train the brain! {"\u26A1"}
+              </Button>
+            )}
+
+            {training && (
+              <div className="rounded-2xl bg-night-950/40 p-4 text-center text-sm text-cloud-muted">
+                The AI brain is studying {configs[difficulty].samples} examples...
+              </div>
+            )}
+
+            {!training && metrics.length > 0 && (
+              <Button onClick={() => setStep(0)} variant="outline" className="w-full">
+                Try a different difficulty
+              </Button>
+            )}
+          </motion.div>
+        )}
+
+        {/* Step 2: Results */}
+        {step === 2 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="rounded-4xl glass-strong p-8 text-center">
+              <div className="text-7xl">{acc >= 80 ? "\u{1F3C6}" : acc >= 50 ? "\u{1F4AA}" : "\u{1F914}"}</div>
+              <h3 className="mt-3 font-display text-2xl font-bold text-cloud">
+                {acc >= 80 ? "The brain is a genius!" : acc >= 50 ? "The brain is learning!" : "The brain needs more practice!"}
+              </h3>
+              <p className="mt-2 text-cloud-muted">
+                It got <span className="font-bold text-aurora-teal">{acc}%</span> of answers right!
+              </p>
+
+              <div className="mt-4">
+                <p className="mb-2 text-sm font-semibold text-cloud">What it learned to see:</p>
+                <div className="grid gap-px overflow-hidden rounded-2xl" style={{ gridTemplateColumns: "repeat(12, 1fr)" }}>
+                  {grid.map((cell, i) => (
+                    <div key={i} className="aspect-square" style={{ backgroundColor: `rgba(${cell.pred > 0.5 ? "45, 212, 191" : "167, 139, 250"}, ${cell.pred > 0.5 ? cell.pred : 1 - cell.pred})` }} />
+                  ))}
+                </div>
               </div>
             </div>
-          )}
 
-          {metrics.length === 0 && !training && (
-            <div className="mt-6 py-8 text-center">
-              <div className="text-4xl opacity-20">{"\u{1F9E0}"}</div>
-              <p className="mt-3 text-sm text-cloud-dim">Configure parameters and press Train to build a real neural network.</p>
+            <div className="rounded-3xl glass p-5 text-sm text-cloud-muted">
+              <p className="font-semibold text-cloud">What happened?</p>
+              <p className="mt-1">The AI brain looked at {configs[difficulty].samples} examples and learned to tell two things apart. You just trained a real AI!</p>
             </div>
-          )}
-        </div>
-      </div>
 
-      <div className="mt-6 rounded-4xl glass p-6">
-        <h2 className="mb-3 font-display text-lg font-bold text-cloud">What&apos;s happening?</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl bg-white/[0.03] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-aurora-teal">Neural Network</p>
-            <p className="mt-1 text-sm text-cloud-muted">A 3-layer dense network (8-6-4 neurons) with ReLU activations and sigmoid output.</p>
-          </div>
-          <div className="rounded-2xl bg-white/[0.03] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-aurora-violet">Binary Classification</p>
-            <p className="mt-1 text-sm text-cloud-muted">Two clusters of 2D points. The model learns to separate them with a non-linear boundary.</p>
-          </div>
-          <div className="rounded-2xl bg-white/[0.03] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-aurora-amber">Adam Optimizer</p>
-            <p className="mt-1 text-sm text-cloud-muted">Adaptive learning rate optimization. Binary crossentropy loss measures how wrong predictions are.</p>
-          </div>
-          <div className="rounded-2xl bg-white/[0.03] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-aurora-rose">Try This</p>
-            <p className="mt-1 text-sm text-cloud-muted">Increase noise to 10+ and watch accuracy drop. Add bias to skew the data. Lower the learning rate to 0.01.</p>
-          </div>
-        </div>
+            <div className="flex gap-3">
+              <Button onClick={() => setStep(0)} className="flex-1">Try again!</Button>
+              <Button href="/academy" variant="outline" className="flex-1">Learn more</Button>
+            </div>
+          </motion.div>
+        )}
       </div>
-
-      <div className="mt-14">
-        <SectionHeader eyebrow="More experiments" title="Try a real experiment" />
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {experiments.map((e, i) => (
-            <motion.div
-              key={e.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: i * 0.05 }}
-              className="group relative overflow-hidden rounded-4xl glass p-6 transition-all hover:-translate-y-1"
-            >
-              <div className={cn("absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br opacity-20 blur-2xl group-hover:opacity-40", e.gradient)} />
-              <div className={cn("relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-glow", e.gradient)}>
-                <span aria-hidden="true">{e.emoji}</span>
-              </div>
-              <h3 className="relative mt-3 font-display text-lg font-semibold text-cloud">{e.name}</h3>
-              <p className="relative mt-1 text-sm text-cloud-muted">{e.desc}</p>
-              <div className="relative mt-3 flex gap-1.5">
-                {e.tags.map((t) => <span key={t} className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-cloud-dim">{t}</span>)}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Slider({ label, value, min, max, suffix, display, onChange }: { label: string; value: number; min: number; max: number; suffix: string; display?: (v: number) => string; onChange: (v: number) => void }) {
-  return (
-    <div>
-      <div className="mb-2 flex justify-between text-sm">
-        <span className="text-cloud-muted">{label}</span>
-        <span className="font-semibold text-cloud">{display ? display(value) : `${value}${suffix}`}</span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-aurora-violet"
-      />
     </div>
   );
 }

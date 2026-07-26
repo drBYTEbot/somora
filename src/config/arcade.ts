@@ -71,7 +71,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-violet-500/40",
     difficulty: "Intermediate",
     duration: "12 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Neurons", "Layers", "Flow"],
   },
   {
@@ -86,7 +86,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-amber-500/40",
     difficulty: "Beginner",
     duration: "8 min",
-    playable: false,
+    playable: true,
     conceptTags: ["NLP", "Classification", "Text"],
   },
   {
@@ -101,7 +101,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-rose-500/40",
     difficulty: "Intermediate",
     duration: "10 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Ethics", "Fairness", "Data"],
   },
   {
@@ -116,7 +116,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-pink-500/40",
     difficulty: "Beginner",
     duration: "9 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Generative", "Creativity", "Prompts"],
   },
   {
@@ -131,7 +131,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-cyan-500/40",
     difficulty: "Intermediate",
     duration: "11 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Recommendations", "Similarity", "Ranking"],
   },
   {
@@ -146,7 +146,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-slate-400/40",
     difficulty: "Advanced",
     duration: "15 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Reinforcement", "Rewards", "Agents"],
   },
   {
@@ -161,7 +161,7 @@ export const arcadeGames: ArcadeGame[] = [
     glow: "shadow-indigo-500/40",
     difficulty: "Intermediate",
     duration: "10 min",
-    playable: false,
+    playable: true,
     conceptTags: ["Vision", "Emotion", "Privacy"],
   },
 ];

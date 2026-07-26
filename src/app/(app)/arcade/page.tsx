@@ -9,12 +9,26 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { DataDetective } from "@/components/arcade/data-detective";
 import { TrainRobot } from "@/components/arcade/train-robot";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
+import { NeuralBuilder } from "@/components/arcade/neural-builder";
+import { SpamDetective } from "@/components/arcade/spam-detective";
+import { BiasDetective } from "@/components/arcade/bias-detective";
+import { AIArtist } from "@/components/arcade/ai-artist";
+import { RecommendationGame } from "@/components/arcade/recommendation-game";
+import { AutonomousCar } from "@/components/arcade/autonomous-car";
+import { EmotionRecognizer } from "@/components/arcade/emotion-recognizer";
 import { useStore } from "@/lib/store";
 
 const playableComponents: Record<string, React.ComponentType> = {
   "data-detective": DataDetective,
   "train-robot": TrainRobot,
   "prompt-wizard": PromptWizard,
+  "neural-builder": NeuralBuilder,
+  "spam-detective": SpamDetective,
+  "bias-detective": BiasDetective,
+  "ai-artist": AIArtist,
+  "recommendation": RecommendationGame,
+  "autonomous-car": AutonomousCar,
+  "emotion-recognizer": EmotionRecognizer,
 };
 
 export default function ArcadePage() {

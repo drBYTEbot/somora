@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { worlds } from "@/config/worlds";
 import { getModule } from "@/config/modules";
@@ -75,56 +76,55 @@ export default function UniversePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
-              className={cn(
-                "group relative overflow-hidden rounded-4xl glass p-6 transition-all duration-300 hover:-translate-y-1",
-                !isWorldUnlocked(w.id) && "opacity-70",
-              )}
             >
-              <div
-                className={cn(
-                  "absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br opacity-20 blur-2xl transition-opacity group-hover:opacity-40",
-                  w.gradient,
-                )}
-              />
-              <div className="relative mb-4 flex items-center gap-3">
-                <div
+              {isWorldUnlocked(w.id) ? (
+                <Link
+                  href={`/universe/${w.id}`}
                   className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-glow",
-                    w.gradient,
-                    w.glow,
-                    !isWorldUnlocked(w.id) && "grayscale opacity-70",
+                    "group relative block overflow-hidden rounded-4xl glass p-6 transition-all duration-300 hover:-translate-y-1",
                   )}
                 >
-                  <span aria-hidden="true">{w.emoji}</span>
+                  <div className={cn("absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br opacity-20 blur-2xl transition-opacity group-hover:opacity-40", w.gradient)} />
+                  <div className="relative mb-4 flex items-center gap-3">
+                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-glow", w.gradient, w.glow)}>
+                      <span aria-hidden="true">{w.emoji}</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-cloud-dim">World {w.order}</p>
+                      <p className="font-display text-lg font-semibold text-cloud">{w.name}</p>
+                    </div>
+                  </div>
+                  <p className="relative text-sm leading-relaxed text-cloud-muted">{w.blurb}</p>
+                  <div className="relative mt-4 flex items-center justify-between">
+                    <span className={cn("text-xs font-semibold", w.text)}>{w.topic}</span>
+                    <span className="flex items-center gap-1 text-xs font-medium text-aurora-teal">
+                      Explore
+                      <Icon name="arrow-right" className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <div className={cn("group relative block overflow-hidden rounded-4xl glass p-6 opacity-70")}>
+                  <div className={cn("absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br opacity-10 blur-2xl", w.gradient)} />
+                  <div className="relative mb-4 flex items-center gap-3">
+                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-glow grayscale opacity-70", w.gradient, w.glow)}>
+                      <span aria-hidden="true">{w.emoji}</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-cloud-dim">World {w.order}</p>
+                      <p className="font-display text-lg font-semibold text-cloud">{w.name}</p>
+                    </div>
+                  </div>
+                  <p className="relative text-sm leading-relaxed text-cloud-muted">{w.blurb}</p>
+                  <div className="relative mt-4 flex items-center justify-between">
+                    <span className={cn("text-xs font-semibold", w.text)}>{w.topic}</span>
+                    <span className="flex items-center gap-1 text-xs font-medium text-cloud-dim">
+                      <Icon name="lock" className="h-3.5 w-3.5" />
+                      Locked
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-cloud-dim">
-                    World {w.order}
-                  </p>
-                  <p className="font-display text-lg font-semibold text-cloud">
-                    {w.name}
-                  </p>
-                </div>
-              </div>
-              <p className="relative text-sm leading-relaxed text-cloud-muted">
-                {w.blurb}
-              </p>
-              <div className="relative mt-4 flex items-center justify-between">
-                <span className={cn("text-xs font-semibold", w.text)}>
-                  {w.topic}
-                </span>
-                {isWorldUnlocked(w.id) ? (
-                  <span className="flex items-center gap-1 text-xs font-medium text-aurora-teal">
-                    Explore
-                    <Icon name="arrow-right" className="h-3.5 w-3.5" />
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs font-medium text-cloud-dim">
-                    <Icon name="lock" className="h-3.5 w-3.5" />
-                    Locked
-                  </span>
-                )}
-              </div>
+              )}
             </motion.div>
           ))}
         </div>

@@ -16,20 +16,23 @@ export function Button({
   variant = "primary",
   className,
   children,
+  disabled,
   ...props
 }: {
   href?: string;
   variant?: Variant;
   className?: string;
   children: React.ReactNode;
+  disabled?: boolean;
 } & React.HTMLAttributes<HTMLElement>) {
   const cls = cn(
     "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-display font-semibold tracking-wide transition-all duration-300 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-night-950",
+    disabled && "opacity-50 pointer-events-none",
     variants[variant],
     className,
   );
 
-  if (href) {
+  if (href && !disabled) {
     return (
       <Link href={href} className={cls} {...(props as object)}>
         {children}
@@ -37,7 +40,7 @@ export function Button({
     );
   }
   return (
-    <button className={cls} {...(props as object)}>
+    <button className={cls} disabled={disabled} {...(props as object)}>
       {children}
     </button>
   );
