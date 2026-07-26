@@ -98,10 +98,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/profile"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-cloud-muted transition-all hover:bg-white/5 hover:text-cloud active:scale-95"
             aria-label="Profile"
           >
-            <Icon name="profile" className="h-4.5 w-4.5" />
+            <Icon name="profile" className="h-5 w-5" />
           </Link>
         </header>
         <main>{children}</main>
