@@ -48,7 +48,7 @@ export async function aiChat(
   userMessage: string,
   history?: Array<{ role: "user" | "ai"; content: string }>,
 ): Promise<string> {
-  const messages = [
+  const conversation = [
     { role: "system", content: SYSTEM_PROMPT },
     ...(history ?? []).map((m) => ({
       role: m.role === "ai" ? "assistant" : "user",
@@ -57,19 +57,16 @@ export async function aiChat(
     { role: "user", content: userMessage },
   ];
 
+  const prompt = JSON.stringify(conversation);
+  const url = `${TEXT_API}/${encodeURIComponent(prompt)}?model=openai&seed=${Math.floor(Math.random() * 1000000)}`;
+
   try {
-    const res = await fetch(`${TEXT_API}/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages,
-        model: "openai",
-        temperature: 0.9,
-        seed: Math.floor(Math.random() * 1000000),
-      }),
-    });
+    const res = await fetch(url);
 
     if (!res.ok) {
+      if (res.status === 402 || res.status === 429) {
+        throw new Error("AI is rate limited. Wait a few seconds and try again!");
+      }
       throw new Error(`AI request failed (${res.status}). Try again.`);
     }
 
@@ -128,22 +125,19 @@ export interface StudioResult {
 }
 
 export async function generateApp(userIdea: string): Promise<StudioResult> {
+  const prompt = JSON.stringify([
+    { role: "system", content: STUDIO_SYSTEM_PROMPT },
+    { role: "user", content: `Build this app idea: "${userIdea}"` },
+  ]);
+  const url = `${TEXT_API}/${encodeURIComponent(prompt)}?model=openai&seed=${Math.floor(Math.random() * 1000000)}`;
+
   try {
-    const res = await fetch(`${TEXT_API}/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: STUDIO_SYSTEM_PROMPT },
-          { role: "user", content: `Build this app idea: "${userIdea}"` },
-        ],
-        model: "openai",
-        temperature: 0.8,
-        seed: Math.floor(Math.random() * 1000000),
-      }),
-    });
+    const res = await fetch(url);
 
     if (!res.ok) {
+      if (res.status === 402 || res.status === 429) {
+        throw new Error("AI is rate limited. Wait a few seconds and try again!");
+      }
       throw new Error("AI generation failed. Try again.");
     }
 
