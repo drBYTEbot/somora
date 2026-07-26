@@ -74,6 +74,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Icon name="menu" />
           </button>
 
+          {/* Spacer to center quick links */}
+          <div className="flex-1" />
+
           {/* Quick links */}
           <div className="flex items-center gap-1">
             {QUICK_LINKS.map((link) => {
@@ -95,6 +98,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </div>
+
+          {/* Spacer to center quick links */}
+          <div className="flex-1" />
 
           <Link
             href="/profile"
