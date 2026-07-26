@@ -59,7 +59,7 @@ export const BLOCK_DEFS: BlockDef[] = [
     emoji: "\u270F\uFE0F",
     shape: "stack",
     params: [
-      { name: "elementId", label: "Element ID", type: "text", default: "title" },
+      { name: "elementId", label: "Element", type: "select", default: "title", options: ["title", "box", "myBtn"] },
       { name: "text", label: "Text", type: "text", default: "New text!" },
     ],
     color: "from-sky-500 to-blue-600",
@@ -71,7 +71,7 @@ export const BLOCK_DEFS: BlockDef[] = [
     emoji: "\u{1F3A8}",
     shape: "stack",
     params: [
-      { name: "elementId", label: "Element ID", type: "text", default: "box" },
+      { name: "elementId", label: "Element", type: "select", default: "background", options: ["background", "title", "box", "myBtn"] },
       { name: "color", label: "Color", type: "color", default: "#ff6b6b" },
     ],
     color: "from-sky-500 to-blue-600",
@@ -82,7 +82,7 @@ export const BLOCK_DEFS: BlockDef[] = [
     label: "show",
     emoji: "\u{1F441}",
     shape: "stack",
-    params: [{ name: "elementId", label: "Element ID", type: "text", default: "box" }],
+    params: [{ name: "elementId", label: "Element", type: "select", default: "box", options: ["title", "box", "myBtn"] }],
     color: "from-sky-500 to-blue-600",
   },
   {
@@ -91,7 +91,7 @@ export const BLOCK_DEFS: BlockDef[] = [
     label: "hide",
     emoji: "\u{1F6AB}",
     shape: "stack",
-    params: [{ name: "elementId", label: "Element ID", type: "text", default: "box" }],
+    params: [{ name: "elementId", label: "Element", type: "select", default: "box", options: ["title", "box", "myBtn"] }],
     color: "from-sky-500 to-blue-600",
   },
   {
@@ -206,16 +206,19 @@ function genBlock(block: PlacedBlock, indent: number): string {
     case "setText": {
       const id = paramVal(block, "elementId");
       const text = paramVal(block, "text");
-      return `${pad}const el_${id} = document.getElementById('${id}'); if (el_${id}) el_${id}.textContent = '${text}';`;
+      return `${pad}if (placeholder) placeholder.remove(); const el_${id} = document.getElementById('${id}'); if (el_${id}) el_${id}.textContent = '${text}';`;
     }
     case "changeColor": {
       const id = paramVal(block, "elementId");
       const color = paramVal(block, "color");
-      return `${pad}const el_c_${id} = document.getElementById('${id}'); if (el_c_${id}) el_c_${id}.style.backgroundColor = '${color}';`;
+      if (id === "background") {
+        return `${pad}if (placeholder) placeholder.remove(); document.body.style.background = '${color}';`;
+      }
+      return `${pad}if (placeholder) placeholder.remove(); const el_c_${id} = document.getElementById('${id}'); if (el_c_${id}) el_c_${id}.style.backgroundColor = '${color}';`;
     }
     case "show": {
       const id = paramVal(block, "elementId");
-      return `${pad}const el_s_${id} = document.getElementById('${id}'); if (el_s_${id}) el_s_${id}.style.display = 'block';`;
+      return `${pad}if (placeholder) placeholder.remove(); const el_s_${id} = document.getElementById('${id}'); if (el_s_${id}) el_s_${id}.style.display = 'block';`;
     }
     case "hide": {
       const id = paramVal(block, "elementId");
@@ -306,16 +309,20 @@ export function generateHTML(blocks: PlacedBlock[]): string {
 <html>
 <head>
 <style>
-  body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; }
+  body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; transition: background 0.3s; }
   h1 { font-size: 28px; }
-  button { padding: 12px 24px; font-size: 18px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold; }
+  button { padding: 12px 24px; font-size: 18px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold; transition: background 0.3s; }
   button:hover { transform: scale(1.05); }
+  #box { width: 120px; height: 120px; background: #4ecdc4; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 48px; transition: background 0.3s; }
   #somora-say { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 12px; font-size: 18px; z-index: 100; }
   .somora-placeholder { color: rgba(255,255,255,0.2); font-size: 18px; text-align: center; }
 </style>
 </head>
 <body>
   <div class="somora-placeholder">Your app will appear here!</div>
+  <h1 id="title">My App</h1>
+  <button id="myBtn">Click me!</button>
+  <div id="box"></div>
   <div id="somora-say"></div>
   <script>
     ${code}
