@@ -39,16 +39,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 : "text-cloud-muted hover:bg-white/5 hover:text-cloud",
             )}
           >
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-glow",
-                m.gradient,
-                m.glow,
-                !active && "opacity-80",
-              )}
-            >
-              <Icon name={m.icon as IconName} className="h-4.5 w-4.5 text-white" />
-            </span>
+            <Icon
+              name={m.icon as IconName}
+              className={cn("h-5 w-5 shrink-0", active ? "text-cloud" : "text-cloud-dim")}
+            />
             <span className="flex-1 truncate">{m.short}</span>
             {active && (
               <span className="h-1.5 w-1.5 rounded-full bg-aurora-teal" />
