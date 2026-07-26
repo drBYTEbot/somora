@@ -91,7 +91,7 @@ export function EmotionRecognizer() {
   return (
     <div className="rounded-4xl glass-strong p-6 lg:p-8">
       <div className="mb-5 flex items-center justify-between">
-        <span className="rounded-full bg-aurora-indigo/15 px-3 py-1 text-xs font-semibold text-aurora-sky">
+        <span className="rounded-full bg-aurora-violet/15 px-3 py-1 text-xs font-semibold text-aurora-violet">
           Face {index + 1} / {rounds.length}
         </span>
         <span className="text-xs text-cloud-dim">Score: {score}</span>

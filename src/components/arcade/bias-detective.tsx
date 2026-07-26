@@ -105,7 +105,7 @@ export function BiasDetective() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("mt-4 rounded-2xl p-4", isBiased ? "bg-aurora-rose/10" : "bg-aurora-teal/10")}>
           {isBiased ? (
             <>
-              <p className="font-semibold text-aurora-rose">{"\u26A0}\u{FE0F}"} Bias detected!</p>
+              <p className="font-semibold text-aurora-rose">{"\u26A0\u{FE0F}"} Bias detected!</p>
               <p className="mt-1 text-sm text-cloud-muted">Your AI saw {lightCount} light-skinned and {darkCount} dark-skinned faces. It will be worse at recognizing dark skin because it didn&apos;t see enough examples!</p>
               <Button onClick={fixBias} className="mt-3 w-full">Fix the bias</Button>
             </>

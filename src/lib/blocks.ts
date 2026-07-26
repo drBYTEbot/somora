@@ -256,15 +256,6 @@ function genBlock(block: PlacedBlock, indent: number): string {
   }
 }
 
-function needsAsync(blocks: PlacedBlock[]): boolean {
-  return blocks.some(
-    (b) =>
-      b.type === "wait" ||
-      b.type === "forever" ||
-      (b.children?.some((c) => needsAsync([c])) ?? false),
-  );
-}
-
 function genBlocks(blocks: PlacedBlock[], indent: number): string {
   let code = "";
   for (const block of blocks) {
@@ -285,13 +276,13 @@ function genBlocks(blocks: PlacedBlock[], indent: number): string {
 }
 
 export function generateCode(blocks: PlacedBlock[]): string {
-  const isAsync = needsAsync(blocks);
   const body = genBlocks(blocks, 1);
   return `async function run() {
   const vars = {};
   const log = document.getElementById('somora-log');
   function addToLog(msg) {
     if (log) { log.innerHTML += '<div>' + msg + '</div>'; log.scrollTop = log.scrollHeight; }
+    parent.postMessage({ type: 'somora-log', msg: String(msg) }, '*');
   }
   function showMessage(msg) {
     const bubble = document.getElementById('somora-say');
@@ -300,7 +291,7 @@ export function generateCode(blocks: PlacedBlock[]): string {
   }
 ${body}
 }
-${isAsync ? "run();" : "try { run(); } catch(e) { console.error(e); }"}`;
+try { run(); } catch(e) { addToLog('\u274C ' + e.message); console.error(e); }`;
 }
 
 export function generateHTML(blocks: PlacedBlock[]): string {

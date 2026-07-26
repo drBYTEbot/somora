@@ -53,7 +53,7 @@ export function PromptWizard() {
           {score >= 2 ? "You're a Prompt Wizard!" : "Keep practicing your spells!"}
         </h3>
         <p className="mt-2 text-cloud-muted">
-          You scored <span className="font-bold text-aurora-fuchsia">{score}</span> out of {promptChallenges.length}.
+          You scored <span className="font-bold text-aurora-bloom">{score}</span> out of {promptChallenges.length}.
         </p>
         <p className="mx-auto mt-3 max-w-md text-sm text-cloud-dim">
           The way you talk to AI changes everything it creates. Every great AI builder is first a great prompt engineer.
@@ -68,7 +68,7 @@ export function PromptWizard() {
   return (
     <div className="rounded-4xl glass-strong p-6 lg:p-8">
       <div className="mb-4 flex items-center justify-between">
-        <span className="rounded-full bg-aurora-fuchsia/15 px-3 py-1 text-xs font-semibold text-aurora-bloom">
+        <span className="rounded-full bg-aurora-bloom/15 px-3 py-1 text-xs font-semibold text-aurora-bloom">
           Challenge {index + 1} / {promptChallenges.length}
         </span>
         <span className="text-xs text-cloud-dim">Score: {score}</span>

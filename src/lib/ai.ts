@@ -174,13 +174,32 @@ export async function generateApp(userIdea: string): Promise<StudioResult> {
 }
 
 export async function generateImage(prompt: string): Promise<string | null> {
-  if (!isImageReady()) return null;
+  if (!isImageReady()) {
+    throw new Error("AI image is still loading. Wait a moment and try again.");
+  }
   try {
-    const img = await window.puter!.ai!.txt2img(prompt);
-    if (img instanceof HTMLImageElement && img.src) return img.src;
+    const result = await window.puter!.ai!.txt2img(prompt);
+
+    if (result instanceof HTMLImageElement && result.src) return result.src;
+
+    if (typeof result === "string") return result;
+
+    if (result && typeof result === "object") {
+      const r = result as { src?: string; url?: string; image_url?: string };
+      if (r.src) return r.src;
+      if (r.url) return r.url;
+      if (r.image_url) return r.image_url;
+    }
+
+    console.error("Unexpected txt2img response:", result);
     return null;
-  } catch {
-    return null;
+  } catch (err) {
+    console.error("txt2img error:", err);
+    throw new Error(
+      err instanceof Error
+        ? err.message
+        : "Image generation failed. Try a different prompt.",
+    );
   }
 }
 

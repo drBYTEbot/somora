@@ -79,10 +79,10 @@ export default function CreatorPage() {
         setArtImage(url);
         addXP(20);
       } else {
-        setArtError("Could not generate. Try again!");
+        setArtError("AI couldn't make that image. Try a different prompt!");
       }
-    } catch {
-      setArtError("Something went wrong. Try again!");
+    } catch (err) {
+      setArtError(err instanceof Error ? err.message : "Something went wrong. Try again!");
     } finally {
       setArtLoading(false);
     }

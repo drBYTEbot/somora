@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { SectionHeader } from "@/components/ui/section-header";
 import { VibeCoding } from "./vibe-coding";
 import { BlockCoding } from "./block-coding";
 import { JSEditor } from "./js-editor";
@@ -11,70 +10,47 @@ import { PythonLab } from "./python-lab";
 
 type Mode = "vibe" | "blocks" | "js" | "python";
 
-const MODES: { id: Mode; level: string; name: string; emoji: string; desc: string }[] = [
-  { id: "vibe", level: "1", name: "Vibe Coding", emoji: "\u2728", desc: "Describe it in plain English, AI builds it" },
-  { id: "blocks", level: "2", name: "Block Coding", emoji: "\u{1F9E9}", desc: "Drag-and-drop blocks to build apps" },
-  { id: "js", level: "3", name: "JavaScript", emoji: "\u{1F4BB}", desc: "Write real code with AI help" },
-  { id: "python", level: "4", name: "Python & AI", emoji: "\u{1F40D}", desc: "Train models and analyze data" },
+const MODES: { id: Mode; emoji: string; name: string; hint: string }[] = [
+  { id: "vibe", emoji: "\u2728", name: "Magic Words", hint: "Tell AI what to build" },
+  { id: "blocks", emoji: "\u{1F9E9}", name: "Blocks", hint: "Drag blocks to build" },
+  { id: "js", emoji: "\u{1F4BB}", name: "Code", hint: "Write real code" },
+  { id: "python", emoji: "\u{1F40D}", name: "Python", hint: "Make AI with Python" },
 ];
 
 export default function StudioPage() {
   const [mode, setMode] = useState<Mode>("vibe");
+  const current = MODES.find((m) => m.id === mode)!;
 
   return (
-    <div className="container-page py-10 lg:py-14">
-      <SectionHeader
-        eyebrow="Somora Studio"
-        title="Build real apps, your way"
-        description="Four ways to create, from describing your idea to writing real Python. Level up as you learn!"
-        center
-      />
+    <div className="container-page py-8 lg:py-10">
+      <h1 className="text-center font-display text-3xl font-bold text-cloud sm:text-4xl">
+        Let&apos;s build something! {"\u{1F680}"}
+      </h1>
+      <p className="mt-2 text-center text-cloud-muted">
+        Pick how you want to build today
+      </p>
 
-      {/* Mode selector */}
-      <div className="mx-auto mt-8 max-w-4xl">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => setMode(m.id)}
-              className={cn(
-                "relative rounded-3xl p-4 text-left transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50",
-                mode === m.id ? "glass-strong ring-2 ring-aurora-violet/40" : "glass hover:bg-white/[0.06]",
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-xl text-xl font-bold",
-                    mode === m.id
-                      ? "bg-gradient-to-br from-aurora-teal/20 to-aurora-violet/20 text-cloud"
-                      : "bg-white/5 text-cloud-dim",
-                  )}
-                >
-                  {m.emoji}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-cloud-dim">L{m.level}</span>
-                    <p className={cn("text-sm font-bold", mode === m.id ? "text-cloud" : "text-cloud-muted")}>
-                      {m.name}
-                    </p>
-                  </div>
-                  <p className="mt-0.5 text-[10px] leading-tight text-cloud-dim">{m.desc}</p>
-                </div>
-              </div>
-              {mode === m.id && (
-                <motion.div
-                  layoutId="active-mode"
-                  className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-violet"
-                />
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+        {MODES.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => setMode(m.id)}
+            className={cn(
+              "flex flex-col items-center gap-2 rounded-3xl p-5 text-center transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-violet/50",
+              mode === m.id
+                ? "glass-strong ring-2 ring-aurora-violet/40"
+                : "glass hover:bg-white/[0.06]",
+            )}
+          >
+            <span className="text-4xl" aria-hidden="true">{m.emoji}</span>
+            <span className={cn("font-display text-base font-bold", mode === m.id ? "text-cloud" : "text-cloud-muted")}>
+              {m.name}
+            </span>
+            <span className="text-[11px] text-cloud-dim">{m.hint}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Mode content */}
       <div className="mt-8">
         <AnimatePresence mode="wait">
           <motion.div

@@ -70,7 +70,7 @@ export default function RootLayout({
         </StoreProvider>
         <Script
           src="https://js.puter.com/v2/"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
       </body>
     </html>

@@ -44,10 +44,10 @@ export function AIArtist() {
         recordGamePlay("ai-artist", 1);
         addXP(30);
       } else {
-        setError("Could not generate. Try again!");
+        setError("AI couldn't make that image. Try a different prompt!");
       }
-    } catch {
-      setError("Something went wrong. Try again!");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Try again!");
     } finally {
       setLoading(false);
     }

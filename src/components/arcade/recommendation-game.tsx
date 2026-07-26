@@ -50,7 +50,7 @@ export function RecommendationGame() {
   if (phase === "results" && recommended) {
     return (
       <div className="rounded-4xl glass-strong p-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-aurora-cyan">AI recommends</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-aurora-teal">AI recommends</p>
         <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-4">
           <div className="text-7xl">{recommended.emoji}</div>
           <h3 className="mt-3 font-display text-2xl font-bold text-cloud">{recommended.title}</h3>
