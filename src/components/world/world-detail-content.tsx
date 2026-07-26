@@ -1,18 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
 import type { SomoraWorld } from "@/config/worlds";
+import { findLesson } from "@/config/curriculum";
+import { LessonPlayer } from "@/components/lessons/lesson-player";
 
 interface WorldLesson {
   title: string;
   type: string;
   duration: string;
 }
+
+const worldLessonMap: Record<string, string[]> = {
+  "curious-grove": ["ai-foundations-1", "ai-foundations-2", "ai-foundations-3", "ai-foundations-5"],
+  "robot-valley": ["ai-foundations-4", "ai-foundations-2", "machine-learning-3", "ai-foundations-5"],
+  "data-forest": ["machine-learning-1", "machine-learning-2", "machine-learning-3", "machine-learning-5"],
+  "neural-peaks": ["neural-networks-1", "neural-networks-2", "neural-networks-3", "neural-networks-4"],
+  "vision-volcano": ["computer-vision-1", "computer-vision-2", "computer-vision-3", "computer-vision-4"],
+  "language-lagoon": ["nlp-1", "nlp-2", "nlp-3", "nlp-4"],
+  "prompt-planet": ["prompt-engineering-1", "prompt-engineering-2", "prompt-engineering-3", "prompt-engineering-4"],
+  "robotics-harbor": ["prompt-engineering-1", "prompt-engineering-4", "generative-ai-3", "prompt-engineering-3"],
+  "innovation-city": ["ethics-1", "generative-ai-3", "generative-ai-4", "ai-foundations-5"],
+  "space-observatory": ["generative-ai-1", "ethics-1", "ethics-4", "ai-foundations-5"],
+};
 
 export function WorldDetailContent({
   world,
@@ -25,7 +41,8 @@ export function WorldDetailContent({
   lessons: WorldLesson[];
   activity: string;
 }) {
-  const { isLessonComplete, completeLesson, isWorldUnlocked } = useStore();
+  const { isLessonComplete, isWorldUnlocked } = useStore();
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const locked = !isWorldUnlocked(world.id);
 
   if (locked) {
@@ -76,8 +93,10 @@ export function WorldDetailContent({
           <h2 className="mb-4 font-display text-2xl font-bold text-cloud">Lessons in this world</h2>
           <div className="space-y-3">
             {lessons.map((lesson, i) => {
-              const lessonId = `${world.id}-lesson-${i}`;
-              const done = isLessonComplete(lessonId);
+              const lessonMap = worldLessonMap[world.id] ?? [];
+              const curriculumId = lessonMap[i] ?? "ai-foundations-1";
+              const found = findLesson(curriculumId);
+              const done = found ? isLessonComplete(found.lesson.id) : false;
               return (
                 <div key={lesson.title} className="group flex items-center gap-4 rounded-2xl glass p-4 transition-all duration-200 hover:bg-white/[0.06]">
                   <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold", done ? "bg-aurora-teal/20 text-aurora-teal ring-1 ring-aurora-teal/30" : "bg-white/5 text-cloud-dim ring-1 ring-white/10")}>
@@ -95,10 +114,10 @@ export function WorldDetailContent({
                     <span className="shrink-0 text-xs font-semibold text-aurora-teal">Done</span>
                   ) : (
                     <button
-                      onClick={() => completeLesson(lessonId, 80)}
+                      onClick={() => found && setActiveLessonId(found.lesson.id)}
                       className="shrink-0 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-violet px-3 py-1.5 text-xs font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-aurora-violet/40 active:scale-95"
                     >
-                      Complete
+                      Start
                     </button>
                   )}
                 </div>
@@ -123,6 +142,20 @@ export function WorldDetailContent({
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {activeLessonId && (() => {
+          const found = findLesson(activeLessonId);
+          if (!found) return null;
+          return (
+            <LessonPlayer
+              lesson={found.lesson}
+              track={found.track}
+              onClose={() => setActiveLessonId(null)}
+            />
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }

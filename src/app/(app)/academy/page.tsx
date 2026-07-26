@@ -1,20 +1,21 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { curriculumTracks } from "@/config/curriculum";
+import type { Lesson, CurriculumTrack } from "@/config/curriculum";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { SectionHeader } from "@/components/ui/section-header";
 import { XPBar } from "@/components/ui/xp-bar";
 import { Icon } from "@/components/icons/icon";
+import { LessonPlayer } from "@/components/lessons/lesson-player";
 
 export default function AcademyPage() {
-  const { isLessonComplete, completeLesson, state } = useStore();
+  const { isLessonComplete } = useStore();
+  const [activeLesson, setActiveLesson] = useState<{ lesson: Lesson; track: CurriculumTrack } | null>(null);
 
-  const totalLessons = curriculumTracks.reduce(
-    (sum, t) => sum + t.lessons.length,
-    0,
-  );
+  const totalLessons = curriculumTracks.reduce((sum, t) => sum + t.lessons.length, 0);
   const doneLessons = curriculumTracks.reduce(
     (sum, t) => sum + t.lessons.filter((l) => isLessonComplete(l.id)).length,
     0,
@@ -25,7 +26,7 @@ export default function AcademyPage() {
       <SectionHeader
         eyebrow="Somora Academy"
         title="The AI curriculum"
-        description="Complete lessons to earn XP. Every lesson teaches one core AI concept through story, interaction, and play."
+        description="Complete lessons to earn XP. Every lesson has real content — stories, quizzes, interactives, and challenges."
         center
       />
 
@@ -39,12 +40,8 @@ export default function AcademyPage() {
 
       <div className="mt-10 space-y-6">
         {curriculumTracks.map((track, ti) => {
-          const trackDone = track.lessons.filter((l) =>
-            isLessonComplete(l.id),
-          ).length;
-          const trackPct = Math.round(
-            (trackDone / track.lessons.length) * 100,
-          );
+          const trackDone = track.lessons.filter((l) => isLessonComplete(l.id)).length;
+          const trackPct = Math.round((trackDone / track.lessons.length) * 100);
 
           return (
             <motion.div
@@ -94,7 +91,7 @@ export default function AcademyPage() {
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-semibold text-cloud">{lesson.title}</p>
                           <div className="mt-0.5 flex items-center gap-2 text-xs text-cloud-dim">
-                            <span>{lesson.type}</span>
+                            <span className="capitalize">{lesson.type}</span>
                             <span>{"\u00B7"}</span>
                             <span>{lesson.duration}</span>
                           </div>
@@ -103,10 +100,10 @@ export default function AcademyPage() {
                           <span className="shrink-0 text-xs font-semibold text-aurora-teal">Done</span>
                         ) : (
                           <button
-                            onClick={() => completeLesson(lesson.id, 80)}
+                            onClick={() => setActiveLesson({ lesson, track })}
                             className="shrink-0 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-violet px-3 py-1.5 text-xs font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-aurora-violet/40 active:scale-95"
                           >
-                            Complete
+                            Start
                           </button>
                         )}
                       </div>
@@ -129,10 +126,18 @@ export default function AcademyPage() {
             </div>
           ))}
         </div>
-        <p className="mt-4 text-xs text-cloud-dim">
-          Completing a lesson awards 80 XP and 20 coins
-        </p>
+        <p className="mt-4 text-xs text-cloud-dim">Completing a lesson awards 80 XP and 20 coins</p>
       </div>
+
+      <AnimatePresence>
+        {activeLesson && (
+          <LessonPlayer
+            lesson={activeLesson.lesson}
+            track={activeLesson.track}
+            onClose={() => setActiveLesson(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
