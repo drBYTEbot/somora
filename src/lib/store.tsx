@@ -25,6 +25,7 @@ export interface CreatedProject {
   prompt: string;
   createdAt: number;
   tags: string[];
+  html: string;
 }
 
 export interface GameRecord {

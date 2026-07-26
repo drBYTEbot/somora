@@ -7,6 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
+import { encodeAppForSharing } from "@/lib/ai";
 
 export default function ForgePage() {
   const { state } = useStore();
@@ -57,6 +58,29 @@ export default function ForgePage() {
                 <p className="relative mt-3 text-[10px] text-cloud-dim">
                   Created {new Date(p.createdAt).toLocaleDateString()}
                 </p>
+                {p.html && (
+                  <div className="relative mt-4 flex gap-2">
+                    <a
+                      href={encodeAppForSharing(p.html)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-aurora-teal to-aurora-violet px-4 py-1.5 text-xs font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-aurora-violet/40 active:scale-95"
+                    >
+                      <Icon name="play" className="h-3 w-3" />
+                      View app
+                    </a>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}${encodeAppForSharing(p.html)}`;
+                        navigator.clipboard?.writeText(url);
+                      }}
+                      className="flex items-center gap-1.5 rounded-full bg-white/5 px-4 py-1.5 text-xs font-semibold text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud active:scale-95"
+                    >
+                      <Icon name="external" className="h-3 w-3" />
+                      Copy link
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>

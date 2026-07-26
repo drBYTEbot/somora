@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
-import { aiChat, isAIReady } from "@/lib/ai";
+import { aiChat, generateImage, isAIReady, isImageReady } from "@/lib/ai";
 import { llmConcepts } from "@/config/prompts";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
 
@@ -19,7 +19,7 @@ const promptTechniques = [
 ];
 
 export default function CreatorPage() {
-  const { addXP } = useStore();
+  const { addXP, createProject } = useStore();
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,12 +28,22 @@ export default function CreatorPage() {
   const [history, setHistory] = useState<{ prompt: string; response: string }[]>([]);
   const outputRef = useRef<HTMLDivElement>(null);
 
+  // Art Studio state
+  const [artPrompt, setArtPrompt] = useState("");
+  const [artLoading, setArtLoading] = useState(false);
+  const [artImage, setArtImage] = useState<string | null>(null);
+  const [artError, setArtError] = useState<string | null>(null);
+  const [artSaved, setArtSaved] = useState(false);
+  const [imgReady, setImgReady] = useState(false);
+
   useEffect(() => {
     setAiReady(isAIReady());
+    setImgReady(isImageReady());
     const interval = setInterval(() => {
       if (isAIReady()) {
         setAiReady(true);
-        clearInterval(interval);
+        setImgReady(isImageReady());
+        if (isImageReady()) clearInterval(interval);
       }
     }, 1000);
     return () => clearInterval(interval);
@@ -55,6 +65,43 @@ export default function CreatorPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function generateArt() {
+    if (!artPrompt.trim() || artLoading) return;
+    setArtLoading(true);
+    setArtError(null);
+    setArtImage(null);
+    setArtSaved(false);
+
+    try {
+      const imgUrl = await generateImage(artPrompt);
+      if (imgUrl) {
+        setArtImage(imgUrl);
+        addXP(20);
+      } else {
+        setArtError("Could not generate image. Try a different prompt.");
+      }
+    } catch {
+      setArtError("Image generation failed. Please try again.");
+    } finally {
+      setArtLoading(false);
+    }
+  }
+
+  function saveArt() {
+    if (!artImage || artSaved) return;
+    createProject({
+      title: artPrompt.slice(0, 40),
+      emoji: "\u{1F3A8}",
+      description: `AI-generated art: ${artPrompt}`,
+      type: "art",
+      prompt: artPrompt,
+      tags: ["AI Art", "Generative", "Image"],
+      html: `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0c0820;}img{max-width:90vw;max-height:90vh;border-radius:1rem;}</style></head><body><img src="${artImage}" alt="AI Art: ${artPrompt}"/></body></html>`,
+    });
+    addXP(30);
+    setArtSaved(true);
   }
 
   return (
@@ -126,6 +173,121 @@ export default function CreatorPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* AI Art Studio */}
+      <div className="mt-14">
+        <h2 className="mb-2 font-display text-2xl font-bold text-cloud">AI Art Studio</h2>
+        <p className="mb-6 text-cloud-muted">
+          Describe an image and watch real AI generate it. Powered by{" "}
+          {imgReady ? "Puter.js image generation" : "connecting..."}.
+        </p>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Prompt + controls */}
+          <div className="space-y-4">
+            <div className="rounded-4xl glass-strong p-2">
+              <textarea
+                value={artPrompt}
+                onChange={(e) => setArtPrompt(e.target.value)}
+                placeholder="A friendly robot painting a sunset in a watercolor style..."
+                rows={3}
+                className="w-full resize-none bg-transparent px-4 py-3 text-cloud placeholder:text-cloud-dim focus:outline-none"
+              />
+              <div className="flex items-center justify-between border-t border-white/5 px-3 py-2">
+                <span className="text-xs text-cloud-dim">
+                  {imgReady ? "Image AI ready" : "Connecting..."}
+                </span>
+                <button
+                  onClick={generateArt}
+                  disabled={!artPrompt.trim() || artLoading || !imgReady}
+                  className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 px-5 py-2 font-display font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-rose-500/40 disabled:opacity-50 active:scale-95"
+                >
+                  {artLoading ? "Painting..." : "Generate"}
+                  {!artLoading && <span aria-hidden="true">{"\u{1F3A8}"}</span>}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                "A cute robot exploring a forest",
+                "A dragon made of stars",
+                "A city floating in the clouds",
+                "A friendly AI brain with rainbow colors",
+              ].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => setArtPrompt(suggestion)}
+                  className="rounded-full bg-white/5 px-3 py-1 text-xs text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+
+            {artError && (
+              <div className="rounded-2xl bg-aurora-rose/10 px-4 py-3 text-sm text-aurora-rose">
+                {artError}
+              </div>
+            )}
+
+            {artImage && (
+              <button
+                onClick={saveArt}
+                disabled={artSaved}
+                className={cn(
+                  "w-full rounded-full px-5 py-2.5 font-display font-semibold transition-all active:scale-95",
+                  artSaved
+                    ? "bg-aurora-teal/20 text-aurora-teal"
+                    : "bg-gradient-to-r from-aurora-teal to-aurora-violet text-night-950 hover:shadow-glow hover:shadow-aurora-violet/40",
+                )}
+              >
+                {artSaved ? "Saved to portfolio!" : "Save to my portfolio"}
+              </button>
+            )}
+          </div>
+
+          {/* Image display */}
+          <div className="lg:sticky lg:top-20 lg:self-start">
+            <div className="overflow-hidden rounded-4xl glass-strong">
+              <div className="flex items-center gap-2 border-b border-white/10 bg-night-950/50 px-4 py-2.5">
+                <div className="flex gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-aurora-rose/60" />
+                  <span className="h-3 w-3 rounded-full bg-aurora-amber/60" />
+                  <span className="h-3 w-3 rounded-full bg-aurora-teal/60" />
+                </div>
+                <span className="mx-auto text-xs text-cloud-dim">
+                  {artLoading ? "Generating..." : artImage ? "AI Art" : "Canvas"}
+                </span>
+              </div>
+              <div className="flex h-[400px] items-center justify-center bg-night-950/30">
+                {artLoading ? (
+                  <div className="text-center">
+                    <div className="mx-auto h-12 w-12 animate-spin-slow rounded-full border-2 border-pink-500/30 border-t-pink-500" />
+                    <p className="mt-4 text-sm text-cloud-muted">
+                      AI is painting your image...
+                    </p>
+                  </div>
+                ) : artImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={artImage}
+                    alt={artPrompt}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>
+                    <p className="mt-3 text-sm text-cloud-dim">
+                      Describe an image and press Generate
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-14">
