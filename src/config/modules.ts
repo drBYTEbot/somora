@@ -3,7 +3,6 @@ export type ModuleId =
   | "studio"
   | "labs"
   | "arcade"
-  | "creator"
   | "academy";
 
 export type ModuleStatus = "live" | "soon";
@@ -111,28 +110,6 @@ export const modules: SomoraModule[] = [
       "Neural Network Builder, AI Artist",
       "Autonomous Car & Emotion Recognition",
       "Difficulty adapts to the child\u2019s skill",
-    ],
-  },
-  {
-    id: "creator",
-    name: "Somora Creator",
-    short: "Creator",
-    icon: "creator",
-    tagline: "Prompt engineering and generative AI tools",
-    description:
-      "Learn to communicate with AI. Practice prompting through challenges and creative tools.",
-    href: "/creator",
-    gradient: "from-purple-500 via-fuchsia-500 to-violet-500",
-    text: "text-purple-300",
-    ring: "ring-purple-400/40",
-    glow: "shadow-purple-500/40",
-    status: "soon",
-    features: [
-      "Prompt engineering lab with live feedback",
-      "Role, few-shot & structured-output challenges",
-      "Generative AI art, story & music tools",
-      "Debug & refine prompts to improve responses",
-      "LLM Explorer: tokens, context, embeddings",
     ],
   },
   {
