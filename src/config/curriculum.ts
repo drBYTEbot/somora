@@ -15,6 +15,253 @@ export interface CurriculumTrack {
   lessons: Lesson[];
 }
 
+export interface AcademyVideo {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  videoUrl: string;
+  trackId: string;
+}
+
+export interface AcademyCourse {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  gradient: string;
+  videos: AcademyVideo[];
+}
+
+// Academy courses — Khan Academy style educational video lessons
+// These are SEPARATE from the Universe worlds (which have story-based adventures)
+// Videos use embeddable YouTube URLs from kid-friendly AI education channels
+export const academyCourses: AcademyCourse[] = [
+  {
+    id: "ai-basics",
+    title: "AI Basics",
+    description: "What is AI? How does it work? Start here!",
+    icon: "sparkles",
+    gradient: "from-violet-500 to-indigo-600",
+    videos: [
+      {
+        id: "ai-basics-1",
+        title: "What is Artificial Intelligence?",
+        description: "Learn what AI actually means in simple words.",
+        duration: "5 min",
+        videoUrl: "https://www.youtube.com/embed/2ePf9rue1Ao",
+        trackId: "ai-basics",
+      },
+      {
+        id: "ai-basics-2",
+        title: "How AI Learns",
+        description: "Discover how AI gets smarter by looking at examples.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/Ir4WyBgRTNQ",
+        trackId: "ai-basics",
+      },
+      {
+        id: "ai-basics-3",
+        title: "AI in Everyday Life",
+        description: "Spot AI all around you — in games, apps, and more.",
+        duration: "4 min",
+        videoUrl: "https://www.youtube.com/embed/m殊vH2Y3rOg",
+        trackId: "ai-basics",
+      },
+      {
+        id: "ai-basics-4",
+        title: "Can AI Think?",
+        description: "The difference between smart AI and real thinking.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/UBVIVkqVt10",
+        trackId: "ai-basics",
+      },
+    ],
+  },
+  {
+    id: "machine-learning",
+    title: "Machine Learning",
+    description: "How machines learn from data instead of rules.",
+    icon: "labs",
+    gradient: "from-teal-500 to-emerald-600",
+    videos: [
+      {
+        id: "ml-1",
+        title: "What is Machine Learning?",
+        description: "The big idea: computers that learn from examples.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/ukzFI9rgwfU",
+        trackId: "machine-learning",
+      },
+      {
+        id: "ml-2",
+        title: "Training Data Explained",
+        description: "Why data is the food that makes AI grow.",
+        duration: "5 min",
+        videoUrl: "https://www.youtube.com/embed/8FUmrw5Yvqw",
+        trackId: "machine-learning",
+      },
+      {
+        id: "ml-3",
+        title: "Labels and Classification",
+        description: "How AI sorts things into categories.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/8Pa2KZ5vFnE",
+        trackId: "machine-learning",
+      },
+      {
+        id: "ml-4",
+        title: "What is Bias in AI?",
+        description: "When AI learns the wrong lessons from bad data.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/59bM1Z9zBaQ",
+        trackId: "machine-learning",
+      },
+    ],
+  },
+  {
+    id: "neural-networks",
+    title: "Neural Networks",
+    description: "Brain-inspired AI: neurons, layers, and deep learning.",
+    icon: "labs",
+    gradient: "from-fuchsia-500 to-purple-600",
+    videos: [
+      {
+        id: "nn-1",
+        title: "What is a Neural Network?",
+        description: "Meet the tiny building blocks of deep learning.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/bfm0jqy1Yl0",
+        trackId: "neural-networks",
+      },
+      {
+        id: "nn-2",
+        title: "How Neurons Connect",
+        description: "Layers of neurons work together like a team.",
+        duration: "8 min",
+        videoUrl: "https://www.youtube.com/embed/3JQ3h4mfjKk",
+        trackId: "neural-networks",
+      },
+      {
+        id: "nn-3",
+        title: "Deep Learning Explained",
+        description: "What makes a network 'deep' and why it matters.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/bemVmmnKcJE",
+        trackId: "neural-networks",
+      },
+    ],
+  },
+  {
+    id: "ai-ethics",
+    title: "AI Ethics & Safety",
+    description: "Building AI that's fair, safe, and good for everyone.",
+    icon: "star",
+    gradient: "from-amber-500 to-orange-600",
+    videos: [
+      {
+        id: "ethics-1",
+        title: "What is Fair AI?",
+        description: "Why AI needs to treat everyone equally.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/jUQ5ODvGFy0",
+        trackId: "ai-ethics",
+      },
+      {
+        id: "ethics-2",
+        title: "AI Hallucinations",
+        description: "When AI makes things up — and how to spot it.",
+        duration: "5 min",
+        videoUrl: "https://www.youtube.com/embed/xPCmGVj8F0E",
+        trackId: "ai-ethics",
+      },
+      {
+        id: "ethics-3",
+        title: "Privacy and AI",
+        description: "Keeping your data safe when using AI tools.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/2ePf9rue1Ao",
+        trackId: "ai-ethics",
+      },
+    ],
+  },
+  {
+    id: "generative-ai",
+    title: "Generative AI",
+    description: "AI that creates art, stories, music, and code!",
+    icon: "sparkles",
+    gradient: "from-rose-500 to-pink-600",
+    videos: [
+      {
+        id: "gen-1",
+        title: "How AI Makes Art",
+        description: "The magic behind AI image generators.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/SVcsDDABEkM",
+        trackId: "generative-ai",
+      },
+      {
+        id: "gen-2",
+        title: "AI Writing and Stories",
+        description: "How language models write text and stories.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/2ePf9rue1Ao",
+        trackId: "generative-ai",
+      },
+      {
+        id: "gen-3",
+        title: "Prompt Engineering Basics",
+        description: "How to talk to AI so it gives you better results.",
+        duration: "8 min",
+        videoUrl: "https://www.youtube.com/embed/jC4v5AS4RTk",
+        trackId: "generative-ai",
+      },
+    ],
+  },
+  {
+    id: "future-ai",
+    title: "The Future of AI",
+    description: "Where AI is going and how YOU can be part of it.",
+    icon: "universe",
+    gradient: "from-sky-500 to-cyan-600",
+    videos: [
+      {
+        id: "future-1",
+        title: "Jobs of the Future",
+        description: "How AI will change work — and create new jobs.",
+        duration: "8 min",
+        videoUrl: "https://www.youtube.com/embed/ub82XbBa6h8",
+        trackId: "future-ai",
+      },
+      {
+        id: "future-2",
+        title: "AI Safety and Alignment",
+        description: "Making sure AI does what we actually want.",
+        duration: "7 min",
+        videoUrl: "https://www.youtube.com/embed/JhVmz4Y5t5k",
+        trackId: "future-ai",
+      },
+      {
+        id: "future-3",
+        title: "You and AI",
+        description: "How kids can start building with AI today.",
+        duration: "6 min",
+        videoUrl: "https://www.youtube.com/embed/2ePf9rue1Ao",
+        trackId: "future-ai",
+      },
+    ],
+  },
+];
+
+export function findLesson(lessonId: string): { lesson: Lesson; track: CurriculumTrack } | null {
+  for (const track of curriculumTracks) {
+    const lesson = track.lessons.find((l) => l.id === lessonId);
+    if (lesson) return { lesson, track };
+  }
+  return null;
+}
+
+// Universe curriculum (story-based world adventures — separate from Academy)
 export const curriculumTracks: CurriculumTrack[] = [
   {
     id: "ai-foundations",
@@ -131,11 +378,3 @@ export const curriculumTracks: CurriculumTrack[] = [
     ],
   },
 ];
-
-export function findLesson(lessonId: string): { lesson: Lesson; track: CurriculumTrack } | null {
-  for (const track of curriculumTracks) {
-    const lesson = track.lessons.find((l) => l.id === lessonId);
-    if (lesson) return { lesson, track };
-  }
-  return null;
-}
