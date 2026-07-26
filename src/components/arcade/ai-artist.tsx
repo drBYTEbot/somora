@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import { generateImage, isImageReady } from "@/lib/ai";
+import { generateImage, isImageReady, isSignedIn } from "@/lib/ai";
 
 const prompts = [
   "A cute robot painting a sunset",
@@ -21,11 +21,13 @@ export function AIArtist() {
   const [image, setImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const check = setInterval(() => {
       if (isImageReady()) {
         setReady(true);
+        setSignedIn(isSignedIn());
         clearInterval(check);
       }
     }, 1000);
@@ -107,6 +109,11 @@ export function AIArtist() {
           <div className="text-center">
             <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>
             <p className="mt-2 text-sm text-cloud-dim">Describe something and press Create!</p>
+            {ready && !signedIn && (
+              <p className="mt-2 text-xs text-aurora-amber">
+                {"\u26A0\u{FE0F}"} Image generation needs a free Puter sign-in. A popup will appear when you click Create!
+              </p>
+            )}
           </div>
         )}
       </div>

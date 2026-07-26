@@ -13,6 +13,12 @@ declare global {
         ) => Promise<string | { message?: { content?: string } }>;
         txt2img: (prompt: string) => Promise<HTMLImageElement>;
       };
+      auth?: {
+        isSignedIn: () => boolean;
+        signIn: () => Promise<void>;
+        getUser: () => Promise<{ username?: string }>;
+      };
+      printUser?: () => void;
     };
   }
 }
@@ -47,6 +53,21 @@ export function isAIReady(): boolean {
 
 export function isImageReady(): boolean {
   return typeof window !== "undefined" && !!window.puter?.ai?.txt2img;
+}
+
+export function isSignedIn(): boolean {
+  return typeof window !== "undefined" && !!window.puter?.auth?.isSignedIn?.();
+}
+
+export async function ensureSignedIn(): Promise<boolean> {
+  if (typeof window === "undefined" || !window.puter?.auth) return false;
+  if (window.puter.auth.isSignedIn()) return true;
+  try {
+    await window.puter.auth.signIn();
+    return window.puter.auth.isSignedIn();
+  } catch {
+    return false;
+  }
 }
 
 export async function aiChat(
@@ -175,8 +196,14 @@ export async function generateApp(userIdea: string): Promise<StudioResult> {
 
 export async function generateImage(prompt: string): Promise<string | null> {
   if (!isImageReady()) {
-    throw new Error("AI image is still loading. Wait a moment and try again.");
+    throw new Error("AI is still loading. Wait a moment and try again.");
   }
+
+  const signedIn = await ensureSignedIn();
+  if (!signedIn) {
+    throw new Error("You need to sign in to Puter to generate images. A popup should appear — sign in with Google or GitHub. It's free!");
+  }
+
   try {
     const result = await window.puter!.ai!.txt2img(prompt);
 
@@ -204,11 +231,12 @@ export async function generateImage(prompt: string): Promise<string | null> {
     return null;
   } catch (err) {
     console.error("txt2img error:", err);
-    throw new Error(
-      err instanceof Error
-        ? err.message
-        : "Image generation failed. Try a different prompt.",
-    );
+    const msg = err instanceof Error
+      ? err.message
+      : typeof err === "object" && err !== null
+        ? JSON.stringify(err)
+        : String(err);
+    throw new Error(msg || "Image generation failed. Try a different prompt.");
   }
 }
 

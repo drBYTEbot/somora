@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { useStore } from "@/lib/store";
-import { aiChat, generateImage, isAIReady, isImageReady } from "@/lib/ai";
+import { aiChat, generateImage, isAIReady, isImageReady, isSignedIn } from "@/lib/ai";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
 
 const ideaButtons = [
@@ -40,12 +40,14 @@ export default function CreatorPage() {
   const [artImage, setArtImage] = useState<string | null>(null);
   const [artError, setArtError] = useState<string | null>(null);
   const [imgReady, setImgReady] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const check = setInterval(() => {
       if (isAIReady()) {
         setReady(true);
         setImgReady(isImageReady());
+        setSignedIn(isSignedIn());
         if (isImageReady()) clearInterval(check);
       }
     }, 1000);
@@ -208,6 +210,11 @@ export default function CreatorPage() {
             <div className="text-center">
               <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>
               <p className="mt-2 text-sm text-cloud-dim">Describe something and press Create!</p>
+              {imgReady && !signedIn && (
+                <p className="mt-2 text-xs text-aurora-amber">
+                  {"\u26A0\u{FE0F}"} Image generation needs a free Puter sign-in. A popup will appear when you click Create!
+                </p>
+              )}
             </div>
           )}
         </div>
