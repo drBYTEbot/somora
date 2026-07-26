@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/icons/icon";
-import { useStore } from "@/lib/store";
+import { useStore, type ChatMessage } from "@/lib/store";
 import { aiChat, isAIReady } from "@/lib/ai";
 
 const suggestedQuestions = [
@@ -16,20 +16,16 @@ const suggestedQuestions = [
   "What is bias in AI?",
 ];
 
+const INTRO_MESSAGE: ChatMessage = {
+  id: "intro",
+  role: "ai",
+  text: "Hi there! I'm your Somora AI tutor. I'm here to help you understand AI, give you hints, and cheer you on. What are you curious about today?",
+  ts: Date.now(),
+};
+
 export default function AICompanionPage() {
-  const { state, addChatMessage, addXP } = useStore();
-  const [messages, setMessages] = useState(
-    state.chatHistory.length > 0
-      ? state.chatHistory
-      : [
-          {
-            id: "intro",
-            role: "ai" as const,
-            text: "Hi there! I'm your Somora AI tutor. I'm here to help you understand AI, give you hints, and cheer you on. What are you curious about today?",
-            ts: Date.now(),
-          },
-        ],
-  );
+  const { addXP } = useStore();
+  const [messages, setMessages] = useState<ChatMessage[]>([INTRO_MESSAGE]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +58,6 @@ export default function AICompanionPage() {
       ts: Date.now(),
     };
     setMessages((m) => [...m, userMsg]);
-    addChatMessage({ role: "user", text });
     setInput("");
     setLoading(true);
 
@@ -81,13 +76,18 @@ export default function AICompanionPage() {
         ts: Date.now(),
       };
       setMessages((m) => [...m, aiMsg]);
-      addChatMessage({ role: "ai", text: reply });
       addXP(10);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function startNewChat() {
+    setMessages([{ ...INTRO_MESSAGE, ts: Date.now() }]);
+    setError(null);
+    setInput("");
   }
 
   return (
@@ -108,6 +108,14 @@ export default function AICompanionPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={startNewChat}
+              className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-semibold text-cloud-muted ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-cloud focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+              aria-label="Start a new chat"
+            >
+              <Icon name="refresh" className="h-3.5 w-3.5" />
+              New chat
+            </button>
             {!aiReady && (
               <span className="flex items-center gap-1.5 rounded-full bg-aurora-amber/15 px-3 py-1 text-xs font-semibold text-aurora-amber">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-aurora-amber" />

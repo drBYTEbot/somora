@@ -52,7 +52,8 @@ export interface StoreState {
   lessonNotes: Record<string, string>;
 }
 
-const STORAGE_KEY = "somora-progress-v1";
+const STORAGE_KEY = "somora-progress-v2";
+const LEGACY_KEY = "somora-progress-v1";
 const TODAY = new Date().toISOString().slice(0, 10);
 
 function getInitialState(): StoreState {
@@ -77,10 +78,21 @@ function getInitialState(): StoreState {
   if (typeof window === "undefined") return defaultState;
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      // One-time migration from v1: keep progress, drop chat history.
+      raw = localStorage.getItem(LEGACY_KEY);
+      if (raw) {
+        try {
+          localStorage.removeItem(LEGACY_KEY);
+        } catch {
+          // ignore
+        }
+      }
+    }
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...defaultState, ...parsed };
+      return { ...defaultState, ...parsed, chatHistory: [] };
     }
   } catch {
     // ignore parse errors
@@ -150,7 +162,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        // Chat history is ephemeral: never persist it.
+        const { chatHistory, ...persistable } = state;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
       } catch {
         // storage full or unavailable
       }

@@ -8,14 +8,14 @@ export interface TrainingMetrics {
   accuracy: number;
 }
 
-export interface MLPredictions {
-  predictions: number[];
-  accuracy: number;
-  loss: number;
+export interface DataPoint {
+  x: number;
+  y: number;
+  label: number;
 }
 
 /**
- * Build a configurable neural network for binary/multi-class classification.
+ * Build a configurable neural network for binary classification.
  * Uses a simple 2D point dataset (two clusters) so results are visual.
  */
 export function buildModel(config: {
@@ -52,75 +52,84 @@ export function buildModel(config: {
   return model;
 }
 
-/** Generate two overlapping clusters of 2D points for binary classification. */
+/** Generate two clusters of 2D points for binary classification. */
 export function generateDataset(
   numSamples: number,
   noise: number,
-  bias: number,
   separation: number = 2,
-): { xs: tf.Tensor2D; ys: tf.Tensor2D } {
+): { xs: tf.Tensor2D; ys: tf.Tensor2D; points: DataPoint[] } {
   const half = Math.floor(numSamples / 2);
-  const points: number[][] = [];
+  const points: DataPoint[] = [];
+  const pointData: number[][] = [];
   const labels: number[][] = [];
 
-  // Class 0 cluster center (shifted by separation and bias)
-  const c0 = [separation + bias * 0.1, separation + bias * 0.1];
-  // Class 1 cluster center (shifted opposite)
-  const c1 = [-separation - bias * 0.1, -separation - bias * 0.1];
+  const c0 = [separation, separation];
+  const c1 = [-separation, -separation];
 
   for (let i = 0; i < half; i++) {
-    points.push([
-      c0[0] + (Math.random() - 0.5) * noise,
-      c0[1] + (Math.random() - 0.5) * noise,
-    ]);
+    const x = c0[0] + (Math.random() - 0.5) * noise;
+    const y = c0[1] + (Math.random() - 0.5) * noise;
+    points.push({ x, y, label: 0 });
+    pointData.push([x, y]);
     labels.push([0]);
   }
   for (let i = 0; i < half; i++) {
-    points.push([
-      c1[0] + (Math.random() - 0.5) * noise,
-      c1[1] + (Math.random() - 0.5) * noise,
-    ]);
+    const x = c1[0] + (Math.random() - 0.5) * noise;
+    const y = c1[1] + (Math.random() - 0.5) * noise;
+    points.push({ x, y, label: 1 });
+    pointData.push([x, y]);
     labels.push([1]);
   }
 
-  // Shuffle
   for (let i = points.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [points[i], points[j]] = [points[j], points[i]];
+    [pointData[i], pointData[j]] = [pointData[j], pointData[i]];
     [labels[i], labels[j]] = [labels[j], labels[i]];
   }
 
   return {
-    xs: tf.tensor2d(points),
+    xs: tf.tensor2d(pointData),
     ys: tf.tensor2d(labels),
+    points,
   };
 }
 
-/** Train the model and report metrics per epoch via callback. */
-export async function trainModel(
+export function pointsToTensors(points: DataPoint[]): {
+  xs: tf.Tensor2D;
+  ys: tf.Tensor2D;
+} {
+  return {
+    xs: tf.tensor2d(points.map((p) => [p.x, p.y])),
+    ys: tf.tensor2d(points.map((p) => [p.label])),
+  };
+}
+
+export function splitData<T>(array: T[], ratio: number): { train: T[]; test: T[] } {
+  const splitIdx = Math.floor(array.length * ratio);
+  return {
+    train: array.slice(0, splitIdx),
+    test: array.slice(splitIdx),
+  };
+}
+
+export function evaluateAccuracy(
   model: tf.Sequential,
   xs: tf.Tensor2D,
   ys: tf.Tensor2D,
-  epochs: number,
-  onEpoch: (metrics: TrainingMetrics) => void,
-): Promise<void> {
-  await model.fit(xs, ys, {
-    epochs,
-    batchSize: 16,
-    shuffle: true,
-    callbacks: {
-      onEpochEnd: (epoch, logs) => {
-        onEpoch({
-          epoch: epoch + 1,
-          loss: logs?.loss ?? 0,
-          accuracy: logs?.acc ?? logs?.accuracy ?? 0,
-        });
-      },
-    },
-  });
+): number {
+  const preds = model.predict(xs) as tf.Tensor;
+  const predData = preds.dataSync();
+  const trueData = ys.dataSync();
+  let correct = 0;
+  for (let i = 0; i < predData.length; i++) {
+    if ((predData[i] > 0.5 ? 1 : 0) === trueData[i]) correct++;
+  }
+  preds.dispose();
+  return correct / predData.length;
 }
 
-/** Train a single epoch and return metrics. Allows step-by-step training with delays. */
+/** Train a single epoch and return metrics. */
 export async function trainOneEpoch(
   model: tf.Sequential,
   xs: tf.Tensor2D,
@@ -142,34 +151,37 @@ export async function trainOneEpoch(
   };
 }
 
-/** Get predictions on a grid of points for visualization. */
+/** Get predictions on a grid of points for visualization (batched for speed). */
 export function predictGrid(
   model: tf.Sequential,
   resolution: number,
-): { x: number; y: number; pred: number }[] {
-  const results: { x: number; y: number; pred: number }[] = [];
-  const range = 6;
-
-  for (let i = 0; i < resolution; i++) {
-    for (let j = 0; j < resolution; j++) {
+  range: number = 6,
+): { pred: number }[] {
+  const inputs: number[][] = [];
+  for (let j = 0; j < resolution; j++) {
+    for (let i = 0; i < resolution; i++) {
       const x = (i / (resolution - 1) - 0.5) * range * 2;
       const y = (j / (resolution - 1) - 0.5) * range * 2;
-      const input = tf.tensor2d([[x, y]]);
-      const pred = model.predict(input) as tf.Tensor;
-      const val = pred.dataSync()[0];
-      results.push({ x, y, pred: val });
-      input.dispose();
-      pred.dispose();
+      inputs.push([x, y]);
     }
   }
-
-  return results;
+  const inputTensor = tf.tensor2d(inputs);
+  const preds = model.predict(inputTensor) as tf.Tensor;
+  const data = preds.dataSync();
+  inputTensor.dispose();
+  preds.dispose();
+  return Array.from(data).map((pred) => ({ pred }));
 }
 
-export function disposeModel(model: tf.Sequential): void {
-  model.dispose();
-}
-
-export function cleanupTensors(): void {
-  tf.tidy(() => {});
+export function predictPoint(
+  model: tf.Sequential,
+  x: number,
+  y: number,
+): number {
+  const input = tf.tensor2d([[x, y]]);
+  const pred = model.predict(input) as tf.Tensor;
+  const val = pred.dataSync()[0];
+  input.dispose();
+  pred.dispose();
+  return val;
 }
