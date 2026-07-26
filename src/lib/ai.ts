@@ -1,55 +1,3 @@
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string | Array<{ role: string; content: string }>,
-          options?: {
-            model?: string;
-            stream?: boolean;
-            temperature?: number;
-            max_tokens?: number;
-          },
-        ) => Promise<string | { message?: { content?: string } }>;
-        txt2img: (prompt: string) => Promise<HTMLImageElement>;
-      };
-      auth?: {
-        isSignedIn: () => boolean;
-        signIn: () => Promise<void>;
-        getUser: () => Promise<{ username?: string }>;
-      };
-      printUser?: () => void;
-    };
-  }
-}
-
-let puterLoadPromise: Promise<void> | null = null;
-
-export function loadPuter(): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
-  if (window.puter?.ai?.chat) return Promise.resolve();
-  if (puterLoadPromise) return puterLoadPromise;
-
-  puterLoadPromise = new Promise<void>((resolve) => {
-    const existing = document.querySelector('script[src="https://js.puter.com/v2/"]');
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      if (window.puter?.ai?.chat) resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://js.puter.com/v2/";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => {
-      puterLoadPromise = null;
-      resolve();
-    };
-    document.head.appendChild(script);
-  });
-  return puterLoadPromise;
-}
-
 const SYSTEM_PROMPT = `You are Somora, a friendly AI buddy for kids around 5th grade (10-11 years old). You talk like a cool older sibling or a fun teacher, not like a robot or a textbook.
 
 HOW YOU TALK:
@@ -75,36 +23,31 @@ RULES:
 - If you don't know something, just say "Honestly I'm not sure about that one!" and suggest looking it up together.`;
 
 export function isAIReady(): boolean {
-  return typeof window !== "undefined" && !!window.puter?.ai?.chat;
+  return true;
 }
 
 export function isImageReady(): boolean {
-  return typeof window !== "undefined" && !!window.puter?.ai?.txt2img;
+  return true;
+}
+
+export function loadPuter(): Promise<void> {
+  return Promise.resolve();
 }
 
 export function isSignedIn(): boolean {
-  return typeof window !== "undefined" && !!window.puter?.auth?.isSignedIn?.();
+  return true;
 }
 
 export async function ensureSignedIn(): Promise<boolean> {
-  if (typeof window === "undefined" || !window.puter?.auth) return false;
-  if (window.puter.auth.isSignedIn()) return true;
-  try {
-    await window.puter.auth.signIn();
-    return window.puter.auth.isSignedIn();
-  } catch {
-    return false;
-  }
+  return true;
 }
+
+const TEXT_API = "https://text.pollinations.ai";
 
 export async function aiChat(
   userMessage: string,
   history?: Array<{ role: "user" | "ai"; content: string }>,
 ): Promise<string> {
-  if (!isAIReady()) {
-    throw new Error("AI is not available. Please refresh the page.");
-  }
-
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
     ...(history ?? []).map((m) => ({
@@ -115,21 +58,29 @@ export async function aiChat(
   ];
 
   try {
-    const response = await window.puter!.ai.chat(
-      messages as any,
-      { model: "gpt-4o-mini", temperature: 0.9, max_tokens: 300 },
-    );
+    const res = await fetch(`${TEXT_API}/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        model: "openai",
+        temperature: 0.9,
+        seed: Math.floor(Math.random() * 1000000),
+      }),
+    });
 
-    if (typeof response === "string") return response;
-    if (response && typeof response === "object") {
-      const r = response as { message?: { content?: string } };
-      if (r.message?.content) return r.message.content;
+    if (!res.ok) {
+      throw new Error(`AI request failed (${res.status}). Try again.`);
     }
-    return String(response ?? "");
+
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      throw new Error("AI returned empty response. Try again.");
+    }
+    return text.trim();
   } catch (err) {
-    throw new Error(
-      err instanceof Error ? err.message : "AI request failed. Try again.",
-    );
+    if (err instanceof Error) throw err;
+    throw new Error("AI request failed. Try again.");
   }
 }
 
@@ -177,25 +128,29 @@ export interface StudioResult {
 }
 
 export async function generateApp(userIdea: string): Promise<StudioResult> {
-  if (!isAIReady()) {
-    throw new Error("AI is not available. Please refresh the page.");
-  }
-
   try {
-    const response = await window.puter!.ai.chat(
-      [
-        { role: "system", content: STUDIO_SYSTEM_PROMPT },
-        { role: "user", content: `Build this app idea: "${userIdea}"` },
-      ] as any,
-      { model: "gpt-4o-mini", temperature: 0.8, max_tokens: 4000 },
-    );
+    const res = await fetch(`${TEXT_API}/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: STUDIO_SYSTEM_PROMPT },
+          { role: "user", content: `Build this app idea: "${userIdea}"` },
+        ],
+        model: "openai",
+        temperature: 0.8,
+        seed: Math.floor(Math.random() * 1000000),
+      }),
+    });
 
-    let text: string;
-    if (typeof response === "string") text = response;
-    else if (response && typeof response === "object") {
-      const r = response as { message?: { content?: string } };
-      text = r.message?.content ?? "";
-    } else text = String(response ?? "");
+    if (!res.ok) {
+      throw new Error("AI generation failed. Try again.");
+    }
+
+    let text = await res.text();
+    if (!text || text.trim().length === 0) {
+      throw new Error("AI returned empty response. Try again.");
+    }
 
     // Remove markdown fences if present
     text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "");
@@ -222,8 +177,6 @@ export async function generateApp(userIdea: string): Promise<StudioResult> {
 }
 
 export async function generateImage(prompt: string): Promise<string | null> {
-  // Primary: Pollinations.ai — free, no auth, no API key, open-source
-  // Just returns an image URL directly
   try {
     const encoded = encodeURIComponent(prompt);
     const seed = Math.floor(Math.random() * 1000000);
@@ -236,46 +189,10 @@ export async function generateImage(prompt: string): Promise<string | null> {
         return URL.createObjectURL(blob);
       }
     }
-    // If fetch fails or blob too small, fall through to Puter
+    return null;
   } catch {
-    // Network error, fall through to Puter
+    return null;
   }
-
-  // Fallback: Puter.js txt2img (requires auth)
-  if (isImageReady()) {
-    try {
-      const signedIn = await ensureSignedIn();
-      if (!signedIn) {
-        throw new Error("Image generation is having trouble. Please try again in a moment.");
-      }
-
-      const result = await window.puter!.ai!.txt2img(prompt);
-
-      if (result instanceof HTMLImageElement) {
-        if (result.src) return result.src;
-        await new Promise<void>((resolve, reject) => {
-          result.addEventListener("load", () => resolve());
-          result.addEventListener("error", () => reject(new Error("Image failed to load")));
-          setTimeout(() => resolve(), 10000);
-        });
-        if (result.src) return result.src;
-      }
-
-      if (typeof result === "string") return result;
-
-      if (result && typeof result === "object") {
-        const r = result as { src?: string; url?: string; image_url?: string; toString?: () => string };
-        if (r.src) return r.src;
-        if (r.url) return r.url;
-        if (r.image_url) return r.image_url;
-        if (r.toString) return r.toString();
-      }
-    } catch (err) {
-      console.error("txt2img fallback error:", err);
-    }
-  }
-
-  return null;
 }
 
 /** Encode HTML into a shareable URL hash */

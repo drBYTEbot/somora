@@ -8,7 +8,6 @@ import { useStore } from "@/lib/store";
 import {
   generateApp,
   isAIReady,
-  loadPuter,
   encodeAppForSharing,
   type StudioResult,
 } from "@/lib/ai";
@@ -29,25 +28,9 @@ export function VibeCoding() {
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [aiReady, setAiReady] = useState(false);
+  const [aiReady, setAiReady] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const linkInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    loadPuter().then(() => {
-      const check = setInterval(() => {
-        if (isAIReady()) {
-          setAiReady(true);
-          clearInterval(check);
-        }
-      }, 500);
-      const timeout = setTimeout(() => clearInterval(check), 15000);
-      return () => {
-        clearInterval(check);
-        clearTimeout(timeout);
-      };
-    });
-  }, []);
 
   async function build(text: string) {
     if (!text.trim() || building) return;

@@ -3,7 +3,6 @@ import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { site } from "@/config/site";
 import { StoreProvider } from "@/lib/store";
-import { AuthBanner } from "@/components/ui/auth-banner";
 
 const display = Fredoka({
   subsets: ["latin"],
@@ -65,7 +64,6 @@ export default function RootLayout({
       <body className="font-sans">
         <StoreProvider>
           {children}
-          <AuthBanner />
         </StoreProvider>
       </body>
     </html>

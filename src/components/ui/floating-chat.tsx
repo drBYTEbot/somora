@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/icons/icon";
-import { aiChat, isAIReady, loadPuter } from "@/lib/ai";
+import { aiChat } from "@/lib/ai";
 
 interface ChatMsg {
   id: string;
@@ -21,21 +21,8 @@ export function FloatingChat() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [aiReady, setAiReady] = useState(false);
+  const [aiReady, setAiReady] = useState(true);
   const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadPuter().then(() => {
-      const check = setInterval(() => {
-        if (isAIReady()) {
-          setAiReady(true);
-          clearInterval(check);
-        }
-      }, 500);
-      setTimeout(() => clearInterval(check), 15000);
-      return () => clearInterval(check);
-    });
-  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
