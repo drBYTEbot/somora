@@ -1,24 +1,161 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { llmConcepts } from "@/config/prompts";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/icons/icon";
+import { useStore } from "@/lib/store";
+import { aiChat, isAIReady } from "@/lib/ai";
+import { llmConcepts } from "@/config/prompts";
 import { PromptWizard } from "@/components/arcade/prompt-wizard";
 
+const promptTechniques = [
+  { name: "Be specific", desc: "Give details: format, length, tone, subject", example: "Write a 5-sentence bedtime story about a brave robot, in a gentle tone" },
+  { name: "Role prompting", desc: "Tell the AI who to be", example: "You are a friendly science teacher. Explain neural networks to a 10-year-old." },
+  { name: "Few-shot", desc: "Give examples of what you want", example: "Happy: 'I love this!' Sad: 'I'm so disappointed.' Now classify: 'This is amazing!'" },
+  { name: "Step-by-step", desc: "Ask the AI to think through it", example: "Think step by step: if I have 3 apples and give 1 away, how many do I have left?" },
+];
+
 export default function CreatorPage() {
+  const { addXP } = useStore();
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [aiReady, setAiReady] = useState(false);
+  const [history, setHistory] = useState<{ prompt: string; response: string }[]>([]);
+  const outputRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAiReady(isAIReady());
+    const interval = setInterval(() => {
+      if (isAIReady()) {
+        setAiReady(true);
+        clearInterval(interval);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function run() {
+    if (!prompt.trim() || loading) return;
+    setLoading(true);
+    setError(null);
+    setResponse("");
+
+    try {
+      const result = await aiChat(prompt);
+      setResponse(result);
+      setHistory((h) => [...h.slice(-4), { prompt, response: result }]);
+      addXP(15);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="container-page py-10 lg:py-14">
       <SectionHeader
         eyebrow="Somora Creator"
-        title="Prompt engineering & generative AI"
-        description="Learn to communicate with AI. Master the art of the prompt, then explore how language models actually work under the hood."
+        title="Prompt engineering lab"
+        description="Write real prompts and see real AI responses. Experiment with techniques that make your prompts more powerful."
         center
       />
 
-      <div className="mt-10">
+      <div className="mx-auto mt-10 max-w-3xl">
+        <div className="rounded-4xl glass-strong p-2">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Write a prompt here... e.g., 'You are a friendly science teacher. Explain what a neural network is to a 10-year-old using a simple analogy.'"
+            rows={3}
+            className="w-full resize-none bg-transparent px-4 py-3 text-cloud placeholder:text-cloud-dim focus:outline-none"
+          />
+          <div className="flex items-center justify-between border-t border-white/5 px-3 py-2">
+            <span className="text-xs text-cloud-dim">
+              {aiReady ? "AI connected" : "Connecting to AI..."}
+            </span>
+            <button
+              onClick={run}
+              disabled={!prompt.trim() || loading}
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aurora-teal to-aurora-violet px-5 py-2 font-display font-semibold text-night-950 transition-all hover:shadow-glow hover:shadow-aurora-violet/40 disabled:opacity-50 active:scale-95"
+            >
+              {loading ? "Generating..." : "Run prompt"}
+              {!loading && <Icon name="sparkles" className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-2xl bg-aurora-rose/10 px-4 py-3 text-sm text-aurora-rose">
+            {error}
+          </div>
+        )}
+
+        {(loading || response) && (
+          <div ref={outputRef} className="mt-4 rounded-4xl glass p-6">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-cloud-dim">AI response</p>
+            {loading ? (
+              <div className="flex items-center gap-2 py-4">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="h-2 w-2 rounded-full bg-cloud-dim animate-twinkle" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <p className="whitespace-pre-wrap leading-relaxed text-cloud">{response}</p>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="mt-6">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-cloud-dim">Recent prompts</p>
+            <div className="space-y-2">
+              {history.slice(-3).map((h, i) => (
+                <div key={i} className="rounded-2xl glass p-4">
+                  <p className="text-xs font-semibold text-aurora-violet">Prompt: {h.prompt.slice(0, 80)}{h.prompt.length > 80 ? "..." : ""}</p>
+                  <p className="mt-1 text-sm text-cloud-muted">{h.response.slice(0, 120)}{h.response.length > 120 ? "..." : ""}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-14">
+        <h2 className="mb-4 font-display text-2xl font-bold text-cloud">Prompt techniques to try</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {promptTechniques.map((tech, i) => (
+            <motion.div
+              key={tech.name}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="rounded-3xl glass p-5"
+            >
+              <h3 className="font-display font-semibold text-cloud">{tech.name}</h3>
+              <p className="mt-1 text-sm text-cloud-muted">{tech.desc}</p>
+              <button
+                onClick={() => setPrompt(tech.example)}
+                className="mt-3 rounded-full bg-white/5 px-3 py-1.5 text-xs text-aurora-teal ring-1 ring-white/10 transition-all hover:bg-white/10"
+              >
+                Try this prompt
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-14">
         <h2 className="mb-2 font-display text-2xl font-bold text-cloud">LLM Explorer</h2>
-        <p className="mb-6 text-cloud-muted">Large Language Models, explained as visual worlds.</p>
+        <p className="mb-6 text-cloud-muted">How Large Language Models work, explained as visual worlds.</p>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {llmConcepts.map((c, i) => (
             <motion.div
@@ -35,7 +172,7 @@ export default function CreatorPage() {
                   <span aria-hidden="true">{c.emoji}</span>
                 </div>
                 <h3 className="mt-3 font-display text-lg font-bold text-cloud">{c.term}</h3>
-                <p className={cn("text-xs font-medium bg-gradient-to-r bg-clip-text text-transparent", c.gradient)}>{c.analogy}</p>
+                <p className="text-xs font-medium text-aurora-violet">{c.analogy}</p>
                 <p className="mt-2 text-sm leading-relaxed text-cloud-muted">{c.explanation}</p>
               </div>
             </motion.div>
@@ -44,36 +181,9 @@ export default function CreatorPage() {
       </div>
 
       <div className="mt-14">
-        <h2 className="mb-2 font-display text-2xl font-bold text-cloud">Prompt lab</h2>
-        <p className="mb-6 text-cloud-muted">Practice makes perfect. Can you spot the better prompt?</p>
+        <h2 className="mb-2 font-display text-2xl font-bold text-cloud">Prompt challenge</h2>
+        <p className="mb-6 text-cloud-muted">Can you spot the better prompt? Test your skills.</p>
         <PromptWizard />
-      </div>
-
-      <div className="mt-14">
-        <SectionHeader eyebrow="Toolbox" title="Generative AI tools" description="Create with AI across every medium." />
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { name: "AI Art Studio", emoji: "\u{1F3A8}", desc: "Generate images from prompts", gradient: "from-pink-500 to-rose-600" },
-            { name: "Story Workshop", emoji: "\u{1F4D6}", desc: "Build interactive stories with AI", gradient: "from-fuchsia-500 to-purple-600" },
-            { name: "Music Lab", emoji: "\u{1F3B5}", desc: "Experiment with AI-generated music", gradient: "from-violet-500 to-indigo-600" },
-            { name: "Game Creator", emoji: "\u{1F3AE}", desc: "Build simple games with AI help", gradient: "from-amber-500 to-orange-600" },
-          ].map((tool, i) => (
-            <motion.div
-              key={tool.name}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="rounded-3xl glass p-5"
-            >
-              <div className={cn("flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-xl shadow-glow", tool.gradient)}>
-                <span aria-hidden="true">{tool.emoji}</span>
-              </div>
-              <h3 className="mt-3 font-display font-semibold text-cloud">{tool.name}</h3>
-              <p className="mt-1 text-xs text-cloud-muted">{tool.desc}</p>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </div>
   );

@@ -8,10 +8,12 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icons/icon";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/lib/store";
 
 const mod = getModule("universe");
 
 export default function UniversePage() {
+  const { isWorldUnlocked } = useStore();
   return (
     <div className="container-page py-10 lg:py-14">
       <motion.div
@@ -61,7 +63,7 @@ export default function UniversePage() {
             The worlds
           </h2>
           <p className="text-sm text-cloud-dim">
-            {worlds.filter((w) => w.unlocked).length} of {worlds.length}{" "}
+            {worlds.filter((w) => isWorldUnlocked(w.id)).length} of {worlds.length}{" "}
             unlocked
           </p>
         </div>
@@ -75,7 +77,7 @@ export default function UniversePage() {
               transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
               className={cn(
                 "group relative overflow-hidden rounded-4xl glass p-6 transition-all duration-300 hover:-translate-y-1",
-                !w.unlocked && "opacity-70",
+                !isWorldUnlocked(w.id) && "opacity-70",
               )}
             >
               <div
@@ -90,7 +92,7 @@ export default function UniversePage() {
                     "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-glow",
                     w.gradient,
                     w.glow,
-                    !w.unlocked && "grayscale opacity-70",
+                    !isWorldUnlocked(w.id) && "grayscale opacity-70",
                   )}
                 >
                   <span aria-hidden="true">{w.emoji}</span>
@@ -111,7 +113,7 @@ export default function UniversePage() {
                 <span className={cn("text-xs font-semibold", w.text)}>
                   {w.topic}
                 </span>
-                {w.unlocked ? (
+                {isWorldUnlocked(w.id) ? (
                   <span className="flex items-center gap-1 text-xs font-medium text-aurora-teal">
                     Explore
                     <Icon name="arrow-right" className="h-3.5 w-3.5" />

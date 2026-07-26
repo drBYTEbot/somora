@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { promptChallenges } from "@/config/prompts";
+import { useStore } from "@/lib/store";
 
 export function PromptWizard() {
+  const { recordGamePlay, unlockAchievement } = useStore();
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [chosen, setChosen] = useState<null | "A" | "B">(null);
   const [finished, setFinished] = useState(false);
+  const recordedRef = useRef(false);
 
   const challenge = promptChallenges[index];
 
@@ -22,6 +25,11 @@ export function PromptWizard() {
 
   function next() {
     if (index + 1 >= promptChallenges.length) {
+      if (!recordedRef.current) {
+        recordedRef.current = true;
+        recordGamePlay("prompt-wizard", score);
+        if (score >= 2) unlockAchievement("prompt-pro");
+      }
       setFinished(true);
       return;
     }
@@ -30,6 +38,7 @@ export function PromptWizard() {
   }
 
   function restart() {
+    recordedRef.current = false;
     setIndex(0);
     setScore(0);
     setChosen(null);

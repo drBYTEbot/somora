@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/lib/store";
 
 interface Sample {
   emoji: string;
@@ -32,6 +33,7 @@ function pickFromPool(exclude?: number): number {
 }
 
 export function TrainRobot() {
+  const { recordGamePlay, unlockAchievement } = useStore();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [labeled, setLabeled] = useState(0);
   const [correct, setCorrect] = useState(0);
@@ -51,6 +53,10 @@ export function TrainRobot() {
     setCorrect(newCorrect);
     setFeedback(isCorrect);
     setAccuracy(newLabeled >= 2 ? Math.min(98, 45 + (newCorrect / newLabeled) * 50) : 0);
+    if (newLabeled === 10) {
+      recordGamePlay("train-robot", newCorrect);
+      unlockAchievement("data-wizard");
+    }
   }
 
   const next = useCallback(() => {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/lib/store";
 
 interface Example {
   emoji: string;
@@ -24,11 +25,13 @@ const examples: Example[] = [
 ];
 
 export function DataDetective() {
+  const { recordGamePlay, unlockAchievement } = useStore();
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<null | { correct: boolean; reason: string }>(null);
   const [finished, setFinished] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const recordedRef = useRef(false);
 
   const current = examples[index];
 
@@ -42,6 +45,11 @@ export function DataDetective() {
 
   function next() {
     if (index + 1 >= examples.length) {
+      if (!recordedRef.current) {
+        recordedRef.current = true;
+        recordGamePlay("data-detective", score);
+        if (score >= 6) unlockAchievement("data-wizard");
+      }
       setFinished(true);
       return;
     }
@@ -51,6 +59,7 @@ export function DataDetective() {
   }
 
   function restart() {
+    recordedRef.current = false;
     setIndex(0);
     setScore(0);
     setFeedback(null);

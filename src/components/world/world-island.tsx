@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { SomoraWorld } from "@/config/worlds";
 import { Icon } from "@/components/icons/icon";
+import { useStore } from "@/lib/store";
 
 export function WorldIsland({
   world,
@@ -13,7 +14,8 @@ export function WorldIsland({
   world: SomoraWorld;
   index?: number;
 }) {
-  const locked = !world.unlocked;
+  const { isWorldUnlocked } = useStore();
+  const locked = !isWorldUnlocked(world.id);
 
   const inner = (
     <div className="relative flex flex-col items-center text-center">
