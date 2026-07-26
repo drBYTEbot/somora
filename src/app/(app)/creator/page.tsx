@@ -94,7 +94,7 @@ export default function CreatorPage() {
         <h1 className="font-display text-3xl font-bold text-cloud sm:text-4xl">Talk to AI!</h1>
         <p className="mt-3 text-cloud-muted">
           Type something or pick an idea below. The AI will talk back to you!
-          {!ready && <span className="mt-2 block text-xs text-aurora-amber">{"\u26A0}\u{FE0F}"} Connecting to AI... If a popup appears, that&apos;s OK! Just close it.</span>}
+          {!ready && <span className="mt-2 block text-xs text-aurora-amber">{"\u26A0\u{FE0F}"} Connecting to AI... If a popup appears, that&apos;s OK! Just close it.</span>}
         </p>
       </div>
 

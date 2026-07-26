@@ -180,18 +180,27 @@ export async function generateImage(prompt: string): Promise<string | null> {
   try {
     const result = await window.puter!.ai!.txt2img(prompt);
 
-    if (result instanceof HTMLImageElement && result.src) return result.src;
+    if (result instanceof HTMLImageElement) {
+      if (result.src) return result.src;
+      await new Promise<void>((resolve, reject) => {
+        result.addEventListener("load", () => resolve());
+        result.addEventListener("error", () => reject(new Error("Image failed to load")));
+        setTimeout(() => resolve(), 10000);
+      });
+      if (result.src) return result.src;
+    }
 
     if (typeof result === "string") return result;
 
     if (result && typeof result === "object") {
-      const r = result as { src?: string; url?: string; image_url?: string };
+      const r = result as { src?: string; url?: string; image_url?: string; toString?: () => string };
       if (r.src) return r.src;
       if (r.url) return r.url;
       if (r.image_url) return r.image_url;
+      if (r.toString) return r.toString();
     }
 
-    console.error("Unexpected txt2img response:", result);
+    console.error("Unexpected txt2img response type:", typeof result, result);
     return null;
   } catch (err) {
     console.error("txt2img error:", err);

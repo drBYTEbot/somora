@@ -44,10 +44,11 @@ export function AIArtist() {
         recordGamePlay("ai-artist", 1);
         addXP(30);
       } else {
-        setError("AI couldn't make that image. Try a different prompt!");
+        setError("AI couldn't make that image. Try again or use a different prompt!");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Try again!");
+      const msg = err instanceof Error ? err.message : "Something went wrong. Try again!";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,15 @@ export function AIArtist() {
           // eslint-disable-next-line @next/next/no-img-element
           <motion.img initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} src={image} alt={prompt} className="h-full w-full object-cover" />
         ) : error ? (
-          <p className="text-sm text-aurora-rose">{error}</p>
+          <div className="text-center">
+            <p className="text-sm text-aurora-rose">{error}</p>
+            <button
+              onClick={generate}
+              className="mt-3 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-cloud hover:bg-white/20"
+            >
+              Try again
+            </button>
+          </div>
         ) : (
           <div className="text-center">
             <div className="text-5xl opacity-20">{"\u{1F3A8}"}</div>

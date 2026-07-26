@@ -279,12 +279,13 @@ export function generateCode(blocks: PlacedBlock[]): string {
   const body = genBlocks(blocks, 1);
   return `async function run() {
   const vars = {};
-  const log = document.getElementById('somora-log');
+  const placeholder = document.querySelector('.somora-placeholder');
   function addToLog(msg) {
-    if (log) { log.innerHTML += '<div>' + msg + '</div>'; log.scrollTop = log.scrollHeight; }
+    if (placeholder) placeholder.remove();
     parent.postMessage({ type: 'somora-log', msg: String(msg) }, '*');
   }
   function showMessage(msg) {
+    if (placeholder) placeholder.remove();
     const bubble = document.getElementById('somora-say');
     if (bubble) { bubble.textContent = msg; bubble.style.display = 'block'; setTimeout(() => bubble.style.display='none', 3000); }
     addToLog('\u{1F4AC} ' + msg);
@@ -304,18 +305,13 @@ export function generateHTML(blocks: PlacedBlock[]): string {
   h1 { font-size: 28px; }
   button { padding: 12px 24px; font-size: 18px; border-radius: 12px; border: none; cursor: pointer; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold; }
   button:hover { transform: scale(1.05); }
-  #box { width: 120px; height: 120px; background: #4ecdc4; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
   #somora-say { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 12px; font-size: 18px; z-index: 100; }
-  #somora-log { position: fixed; top: 10px; right: 10px; width: 250px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.7); border-radius: 8px; padding: 8px; font-size: 12px; font-family: monospace; }
-  #title { font-size: 24px; font-weight: bold; }
+  .somora-placeholder { color: rgba(255,255,255,0.2); font-size: 18px; text-align: center; }
 </style>
 </head>
 <body>
-  <h1 id="title">\u{1F680} My App</h1>
-  <button id="myBtn">Click me!</button>
-  <div id="box">\u{1F916}</div>
+  <div class="somora-placeholder">Your app will appear here!</div>
   <div id="somora-say"></div>
-  <div id="somora-log"></div>
   <script>
     ${code}
   </script>
