@@ -11,19 +11,18 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json();
 
     const res = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
+      "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-3-medium-diffusers",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${HF_API_KEY}`,
           "Content-Type": "application/json",
-          "x-wait-for-model": "true",
         },
         body: JSON.stringify({
           inputs: prompt,
           parameters: { width: 512, height: 512 },
         }),
-        signal: AbortSignal.timeout(25000),
+        signal: AbortSignal.timeout(55000),
       },
     );
 
