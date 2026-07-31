@@ -54,25 +54,32 @@ export function FloatingChat() {
 
   return (
     <>
-      {/* Floating button — translucent star with "Mr. AI" */}
-      <motion.button
+      {/* Floating button — pulsing translucent star with "Mr. AI" + hover tooltip */}
+      <motion.div
         initial={{ scale: 0, rotate: -30 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 0.5, type: "spring" }}
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-5 right-5 z-50 flex h-16 w-16 items-center justify-center bg-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
-        style={{
-          clipPath:
-            "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-          filter:
-            "drop-shadow(0 0 10px rgba(34, 211, 238, 0.55)) drop-shadow(0 0 28px rgba(59, 130, 246, 0.25))",
-        }}
-        aria-label="Open Mr. AI chat"
+        className="fixed bottom-5 right-5 z-50"
       >
-        <span className="text-[9px] font-bold leading-none tracking-tight text-white">
-          Mr. AI
-        </span>
-      </motion.button>
+        <div className="group relative">
+          <button
+            onClick={() => setOpen(!open)}
+            className="animate-star-pulse flex h-16 w-16 items-center justify-center bg-white/10 backdrop-blur-md transition-transform hover:scale-105 active:scale-95"
+            style={{
+              clipPath:
+                "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
+            }}
+            aria-label="Open Mr. AI chat"
+          >
+            <span className="animate-twinkle text-[9px] font-bold leading-none tracking-tight text-white">
+              Mr. AI
+            </span>
+          </button>
+          <span className="pointer-events-none absolute right-full top-1/2 mr-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-full border border-white/10 bg-night-950/90 px-3 py-1.5 text-[10px] font-semibold text-cloud opacity-0 shadow-lg backdrop-blur-md transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+            Mr. AI — your AI teacher
+          </span>
+        </div>
+      </motion.div>
 
       {/* Chat panel */}
       <AnimatePresence>

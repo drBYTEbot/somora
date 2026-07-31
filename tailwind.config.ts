@@ -66,6 +66,16 @@ const config: Config = {
         "spin-slow": {
           "100%": { transform: "rotate(360deg)" },
         },
+        "star-pulse": {
+          "0%, 100%": {
+            filter:
+              "drop-shadow(0 0 10px rgba(34, 211, 238, 0.55)) drop-shadow(0 0 28px rgba(59, 130, 246, 0.25))",
+          },
+          "50%": {
+            filter:
+              "drop-shadow(0 0 18px rgba(34, 211, 238, 0.9)) drop-shadow(0 0 44px rgba(59, 130, 246, 0.5))",
+          },
+        },
       },
       animation: {
         float: "float 6s ease-in-out infinite",
@@ -74,6 +84,7 @@ const config: Config = {
         aurora: "aurora 20s ease-in-out infinite",
         shimmer: "shimmer 2.5s infinite",
         "spin-slow": "spin-slow 24s linear infinite",
+        "star-pulse": "star-pulse 2.4s ease-in-out infinite 1.2s",
       },
     },
   },
