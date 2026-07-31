@@ -12,7 +12,7 @@ interface ChatMsg {
   text: string;
 }
 
-const INTRO = "Hi! I'm your AI buddy. Ask me anything!";
+const INTRO = "Hi! I'm Mr. AI. Ask me anything!";
 
 export function FloatingChat() {
   const [open, setOpen] = useState(false);
@@ -88,7 +88,7 @@ export function FloatingChat() {
             <div className="flex items-center justify-between border-b border-white/10 bg-night-950/50 px-4 py-3">
               <div className="flex items-center gap-2">
                 <Icon name="chat" className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm font-bold text-cloud">AI Buddy</span>
+                <span className="text-sm font-bold text-cloud">Mr. AI</span>
                 {aiReady && <span className="h-2 w-2 rounded-full bg-aurora-teal" />}
               </div>
               <button
