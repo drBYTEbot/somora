@@ -54,16 +54,24 @@ export function FloatingChat() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button — translucent star with "Mr. AI" */}
       <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        initial={{ scale: 0, rotate: -30 }}
+        animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 0.5, type: "spring" }}
         onClick={() => setOpen(!open)}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-glow shadow-cyan-500/40 transition-all hover:scale-105 active:scale-95"
-        aria-label="Open AI chat"
+        className="fixed bottom-5 right-5 z-50 flex h-16 w-16 items-center justify-center bg-white/10 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+        style={{
+          clipPath:
+            "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
+          filter:
+            "drop-shadow(0 0 10px rgba(34, 211, 238, 0.55)) drop-shadow(0 0 28px rgba(59, 130, 246, 0.25))",
+        }}
+        aria-label="Open Mr. AI chat"
       >
-        <Icon name={open ? "close" : "chat"} className="h-6 w-6 text-white" />
+        <span className="text-[9px] font-bold leading-none tracking-tight text-white">
+          Mr. AI
+        </span>
       </motion.button>
 
       {/* Chat panel */}
